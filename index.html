@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Numbers — Mental Math Drills</title>
+
+<!-- PWA: installability -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14171C">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- iOS-specific: makes "Add to Home Screen" behave like a standalone app -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Numbers">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div class="view active" id="view-home">
+   <div class="wrap">
+
+    <div class="topbar">
+      <div class="brand">Numbers</div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="btnHistory" title="History">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 3-6.7"/>
+            <path d="M3 4v5h5"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+        </button>
+        <div class="menu-wrap">
+          <button class="icon-btn" id="btnMoreMenu" title="More options">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>
+            </svg>
+          </button>
+          <div class="menu-dropdown" id="moreMenuDropdown">
+            <button class="menu-item" id="btnAboutUs">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              About us
+            </button>
+            <button class="menu-item" id="btnReportBug">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v1H6a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3h1v1a5 5 0 0 0 10 0v-1h1a3 3 0 0 0 3-3v-1a3 3 0 0 0-3-3h-1V7a5 5 0 0 0-5-5Z"/><path d="M8 15h8"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg>
+              Report a bug
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="greet" id="greet">
+      <div class="greet-msg" id="greetText"></div>
+      <button class="greet-name" id="greetName" type="button"></button>
+    </div>
+
+    <div class="dash-grid">
+      <div class="history-card" id="historyCard" title="Open history">
+        <div class="hc-top">
+          <div class="hc-tag">Your progress</div>
+          <div class="hc-title" id="hcTitle">Getting started</div>
+          <div class="hc-desc">Average answer time per session · last 30 days</div>
+        </div>
+        <div class="hc-chart" id="homeTrend"></div>
+        <div class="hc-bottom">
+          <div class="hc-stat"><div class="num" id="hcOverallAvg">—</div><div class="lbl">Overall avg</div></div>
+          <div class="hc-stat"><div class="num" id="hcOverallAcc">—</div><div class="lbl">Overall acc.</div></div>
+        </div>
+      </div>
+
+      <div class="dash-stats-col">
+        <div class="dgreet" id="dgreet">
+          <div class="dgreet-msg" id="dgreetText"></div>
+          <button class="dgreet-name" id="dgreetName" type="button"></button>
+        </div>
+        <div class="dash-stats">
+        <div class="stat-card">
+          <div class="sc-lbl">Today</div>
+          <div class="sc-num" id="statToday">0</div>
+          <div class="sc-sub">questions answered</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-lbl">7-day accuracy</div>
+          <div class="sc-num" id="stat7dAcc">—</div>
+          <div class="sc-sub" id="stat7dSub">no rounds yet</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-lbl">Last round</div>
+          <div class="sc-num" id="statLastAvg">—</div>
+          <div class="sc-sub" id="statLastAcc">no rounds yet</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-lbl">Streak</div>
+          <div class="sc-num" id="streakNum">0</div>
+          <div class="sc-sub">days in a row</div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Arithmetic</div>
+    <div class="skill-grid" id="skillGrid">
+      <!-- skill cards rendered by js/ui.js from SKILL_ORDER + real session stats -->
+    </div>
+
+    <div class="section-label">Powers &amp; Roots · coming soon</div>
+    <div class="skill-grid">
+      <div class="skill-card soon c-sq">
+        <div class="sk-top">
+          <div class="sk-icon">n²</div>
+          <div>
+            <div class="sk-name">Square (^2)</div>
+            <div class="sk-desc">Not built yet</div>
+          </div>
+        </div>
+        <div class="sk-progress-track"><div class="sk-progress-fill" style="width:0%"></div></div>
+        <div class="sk-nums">
+          <div class="sk-stat"><div class="num">—</div><div class="lbl">Avg</div></div>
+          <div class="sk-stat"><div class="num">—</div><div class="lbl">Accuracy</div></div>
+        </div>
+      </div>
+      <div class="skill-card soon c-cube">
+        <div class="sk-top">
+          <div class="sk-icon">n³</div>
+          <div>
+            <div class="sk-name">Cube (^3)</div>
+            <div class="sk-desc">Not built yet</div>
+          </div>
+        </div>
+        <div class="sk-progress-track"><div class="sk-progress-fill" style="width:0%"></div></div>
+        <div class="sk-nums">
+          <div class="sk-stat"><div class="num">—</div><div class="lbl">Avg</div></div>
+          <div class="sk-stat"><div class="num">—</div><div class="lbl">Accuracy</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- feeling brave: mixed drill — Start button is a no-op for now, wired in a later step -->
+    <div class="brave-strip" id="braveStrip">
+      <div class="bs-left">
+        <div class="bs-tag">Feeling brave?</div>
+        <div class="bs-title">Mixed drill — everything, shuffled</div>
+        <div class="bs-desc">All skills in one round, no picking and choosing.</div>
+      </div>
+      <div class="bs-right">
+        <div class="bs-stats">
+          <div class="bs-stat"><div class="num" id="bsAvg">—</div><div class="lbl">Best avg</div></div>
+          <div class="bs-stat"><div class="num" id="bsAcc">—</div><div class="lbl">Accuracy</div></div>
+        </div>
+        <button class="bs-btn" id="btnMixedStart">Start</button>
+      </div>
+    </div>
+
+   </div>
+  </div>
+
+  <!-- name editor (mobile greeting widget) -->
+  <div class="name-overlay" id="nameOverlay">
+    <div class="name-box">
+      <div class="name-title">What should we call you?</div>
+      <div class="name-sub">Shows in your greeting on the home screen. Leave it empty to remove it.</div>
+      <input class="name-input" id="nameInput" type="text" maxlength="20" placeholder="Your name" autocomplete="off" autocapitalize="words" enterkeyhint="done">
+      <div class="name-actions">
+        <button class="name-btn ghost" id="nameCancel" type="button">Cancel</button>
+        <button class="name-btn solid" id="nameSave" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIFFICULTY PICKER (modal) -->
+  <div class="modal-overlay" id="diffModalOverlay">
+    <div class="diff-modal" id="diffModal">
+      <button class="dm-close" id="btnDiffClose" aria-label="Close">×</button>
+
+      <div class="dm-head">
+        <div class="dm-eyebrow">
+          <div class="dm-icon" id="dmIcon">÷2</div>
+          <div class="dm-skillname" id="dmSkillname">Halving</div>
+        </div>
+        <div class="dm-title">Choose a difficulty</div>
+      </div>
+
+      <div id="diffCardMount"><!-- config card injected by js/ui.js --></div>
+
+      <div class="dm-qcount">
+        <div class="qcount-label">Number of questions</div>
+        <div class="qcount-bar" id="qcountBar">
+          <button class="qcount-opt active" data-n="15">15</button>
+          <button class="qcount-opt" data-n="30">30</button>
+          <button class="qcount-opt" data-n="50">50</button>
+          <button class="qcount-opt custom" data-n="custom" id="qcountCustomBtn" title="Custom" aria-label="Custom number of questions">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+            <input type="number" class="qcount-inline-input" id="qcountInlineValue" min="1" placeholder="—">
+          </button>
+        </div>
+      </div>
+
+      <div class="dm-start-strip">
+        <div class="dss-msg" id="dssMsg">
+          Let's start your adventure!
+          <div class="dss-sub" id="dssSub">Pick a difficulty above to begin</div>
+        </div>
+        <button class="btn-start-round" id="btnStartRound" disabled>
+          Start round
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="timerbar-track" id="timerTrack" style="visibility:hidden;">
+    <div class="timerbar-fill" id="timerFill"></div>
+  </div>
+
+  <!-- PLAY -->
+  <div class="view" id="view-play">
+    <div class="play-topline">
+      <button class="exit-btn" id="btnExitRound">← Exit</button>
+      <div class="skill-tag" id="skillTag"></div>
+      <div style="width:44px;"></div>
+    </div>
+
+    <div class="problem" id="problemText">6 × 2</div>
+
+    <div class="answer-wrap">
+      <input class="answer-input" id="answerInput" inputmode="numeric" autocomplete="off" placeholder="?">
+      <div class="correct-reveal" id="correctReveal">Answer: <b id="correctRevealNum"></b></div>
+    </div>
+
+    <div class="play-meta">
+      <span id="metaProgress"><b>1</b> / 15</span>
+      <span id="metaAcc"><b>100%</b> accuracy</span>
+      <span id="metaAvg"><b>—</b> avg</span>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="view" id="view-results">
+    <div class="results-scroll">
+      <div class="results-title" id="resultsTitle">Round complete</div>
+      <div class="config-note" id="resultsConfigNote"></div>
+      <div class="results-grid">
+        <div class="stat-box good"><div class="num" id="resAcc">0%</div><div class="lbl">accuracy</div></div>
+        <div class="stat-box"><div class="num" id="resAvg">0.0s</div><div class="lbl">avg time</div></div>
+        <div class="stat-box"><div class="num" id="resBest">0.0s</div><div class="lbl">best time</div></div>
+      </div>
+
+      <div class="breakdown-section">
+        <div class="breakdown-title">Slowest questions</div>
+        <div id="slowestList" class="detail-list"></div>
+      </div>
+
+      <div class="breakdown-section" id="perSkillSection" style="display:none;">
+        <div class="breakdown-title">By skill</div>
+        <div id="perSkillList" class="detail-list"></div>
+      </div>
+
+      <div class="breakdown-section" id="missedSection" style="display:none;">
+        <div class="breakdown-title">Missed</div>
+        <div id="missedList" class="detail-list"></div>
+      </div>
+
+      <div class="results-actions">
+        <button class="btn-ghost" id="btnHome">Home</button>
+        <button class="btn-ghost" id="btnShareSet">Share this set</button>
+        <button class="btn-primary" id="btnAgain">Go again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE CHALLENGE -->
+  <div class="view" id="view-challenge">
+    <div class="history-head" style="width:100%; max-width:800px;">
+      <button class="back-link" id="btnChallengeBack">← Back</button>
+      <h2>Create a challenge</h2>
+      <div class="history-actions">
+        <button class="btn-primary" id="btnChallengeGenerate" style="padding:9px 18px; font-size:13.5px;">Generate code</button>
+      </div>
+    </div>
+    <div class="challenge-body">
+      <div class="challenge-sidebar">
+        <div>
+          <div class="challenge-section-title">Skills to include</div>
+          <div id="challengeSkillsList" class="challenge-skills-list"></div>
+        </div>
+        <div>
+          <div class="challenge-section-title">Number of questions</div>
+          <div class="duration-toggle" id="challengeDurationToggle">
+            <button data-n="15" class="active">15</button>
+            <button data-n="30">30</button>
+            <button data-n="50">50</button>
+          </div>
+        </div>
+        <div class="start-blocked-msg" id="challengeCreateBlockedMsg" style="display:none;">Include at least one skill.</div>
+      </div>
+      <div class="challenge-panel">
+        <div class="challenge-section-title">Per-game settings</div>
+        <div id="challengeSkillConfigs" class="challenge-skill-configs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="view" id="view-history">
+    <div class="history-head">
+      <button class="back-link" id="btnBackHome">← Back</button>
+      <h2>Your progress</h2>
+      <div class="history-actions">
+        <button class="tiny-btn" id="btnExportHistory">Export</button>
+        <button class="tiny-btn" id="btnImportHistory">Import</button>
+      </div>
+    </div>
+    <div class="storage-note">
+      Progress is saved in <b>this browser only</b>, and survives closing the tab or restarting your computer. It's tied to this browser profile though — clearing browsing data, using a different browser, or Incognito mode won't have it. Use <b>Export</b> now and then to back it up as a file, or to move it to another device.
+    </div>
+    <div class="history-columns">
+      <div class="history-col-main">
+        <div class="chart-wrap">
+          <div class="chart-title" id="chartTitle">Average answer time per round (seconds)</div>
+          <div class="segmented" id="skillFilterSeg" style="margin-bottom:14px;"></div>
+          <svg id="chartSvg" viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="empty-chart-note" id="emptyChartNote" style="display:none;">Play a couple more rounds to see a trend here.</div>
+        </div>
+        <div class="sessions-list" id="sessionsList"></div>
+      </div>
+      <div class="history-col-side">
+        <div class="breakdown-section">
+          <div class="breakdown-title">By skill — are you improving?</div>
+          <div id="perSkillStatsList" class="detail-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- exit confirm modal -->
+<div class="modal-overlay" id="exitModal">
+  <div class="modal-box">
+    <p>Leave this round? Your progress on it won't be saved.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnCancelExit">Stay</button>
+      <button class="btn-primary" id="btnConfirmExit">Leave</button>
+    </div>
+  </div>
+</div>
+
+<!-- challenge code: show generated code -->
+<div class="modal-overlay" id="challengeShowModal">
+  <div class="modal-box">
+    <p>Share this code — anyone who enters it gets the exact same set of questions.</p>
+    <div class="challenge-code-box" id="challengeCodeText"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnChallengeCopy">Copy</button>
+      <button class="btn-primary" id="btnChallengeShowClose">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- challenge code: enter a code -->
+<div class="modal-overlay" id="challengeEnterModal">
+  <div class="modal-box">
+    <p>Paste a challenge code to play the same set of questions.</p>
+    <input type="text" id="challengeCodeInput" class="range-input" placeholder="Paste code here" style="margin-bottom:14px;">
+    <div class="start-blocked-msg" id="challengeEnterError" style="display:none; margin-bottom:10px;">That code doesn't look valid.</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnChallengeEnterCancel">Cancel</button>
+      <button class="btn-primary" id="btnChallengeEnterGo">Start round</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFileInput" accept=".json" style="display:none;">
+
+<script src="js/storage.js"></script>
+<script src="js/skills.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/history.js"></script>
+
+<script>
+  // Register service worker for offline support + installability.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+
+</body>
+</html>
