@@ -91,6 +91,7 @@ const timerFill = document.getElementById('timerFill');
 const problemText = document.getElementById('problemText');
 const answerInput = document.getElementById('answerInput');
 const skillTag = document.getElementById('skillTag');
+const difficultyPill = document.getElementById('difficultyPill');
 const metaProgress = document.getElementById('metaProgress');
 const metaAcc = document.getElementById('metaAcc');
 const metaAvg = document.getElementById('metaAvg');

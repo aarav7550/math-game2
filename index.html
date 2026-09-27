@@ -221,29 +221,34 @@
     </div>
   </div>
 
-  <div class="timerbar-track" id="timerTrack" style="visibility:hidden;">
-    <div class="timerbar-fill" id="timerFill"></div>
-  </div>
-
   <!-- PLAY -->
   <div class="view" id="view-play">
+    <div class="timerbar-track" id="timerTrack" style="visibility:hidden;">
+      <div class="timerbar-fill" id="timerFill"></div>
+    </div>
+
     <div class="play-topline">
-      <button class="exit-btn" id="btnExitRound">← Exit</button>
+      <button class="exit-btn" id="btnExitRound">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Exit
+      </button>
       <div class="skill-tag" id="skillTag"></div>
-      <div style="width:44px;"></div>
+      <div class="difficulty-pill" id="difficultyPill"></div>
     </div>
 
-    <div class="problem" id="problemText">6 × 2</div>
+    <div class="play-content">
+      <div class="problem" id="problemText">6 × 2</div>
 
-    <div class="answer-wrap">
-      <input class="answer-input" id="answerInput" inputmode="numeric" autocomplete="off" placeholder="?">
-      <div class="correct-reveal" id="correctReveal">Answer: <b id="correctRevealNum"></b></div>
-    </div>
+      <div class="answer-wrap">
+        <input class="answer-input" id="answerInput" inputmode="numeric" autocomplete="off" placeholder="?">
+        <div class="correct-reveal" id="correctReveal">Answer: <b id="correctRevealNum"></b></div>
+      </div>
 
-    <div class="play-meta">
-      <span id="metaProgress"><b>1</b> / 15</span>
-      <span id="metaAcc"><b>100%</b> accuracy</span>
-      <span id="metaAvg"><b>—</b> avg</span>
+      <div class="play-meta">
+        <div class="meta-chip"><div class="mc-num" id="metaProgress">1 / 15</div><div class="mc-lbl">Question</div></div>
+        <div class="meta-chip"><div class="mc-num" id="metaAcc">100%</div><div class="mc-lbl">Accuracy</div></div>
+        <div class="meta-chip"><div class="mc-num" id="metaAvg">—</div><div class="mc-lbl">Avg time</div></div>
+      </div>
     </div>
   </div>
 

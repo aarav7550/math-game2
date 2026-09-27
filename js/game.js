@@ -109,10 +109,13 @@ function nextQuestion(){
   state.currentSkillKey = skillKey;
   state.currentProblem = SKILLS[skillKey].gen();
   problemText.textContent = state.currentProblem.text;
-  const skillLabelPart = state.skill === 'mixed' ? SKILLS[skillKey].label : '';
-  skillTag.textContent = state.practiceMode
-    ? (skillLabelPart ? skillLabelPart + ' · Practice' : 'Practice')
-    : skillLabelPart;
+  const skillLabel = SKILLS[skillKey].label;
+  skillTag.textContent = state.practiceMode ? skillLabel + ' · Practice' : skillLabel;
+  const accentColor = SKILL_COLOR[skillKey] || SKILL_COLOR.half;
+  document.body.style.setProperty('--accent-c', accentColor);
+  if(difficultyPill){
+    difficultyPill.textContent = difficultyLabels[matchingDifficultyForConfig(skillKey, activeConfig(skillKey))];
+  }
   answerInput.value = '';
   answerInput.classList.remove('flash-good','flash-bad');
   problemText.classList.remove('shake');
@@ -131,7 +134,7 @@ function runTimerBar(){
   if(state.perSkillTimer) clearTimeout(state.perSkillTimer);
   timerFill.style.transition = 'none';
   timerFill.style.transform = 'scaleX(1)';
-  timerFill.style.backgroundColor = 'var(--accent)';
+  timerFill.style.backgroundColor = '';
   void timerFill.offsetWidth; // force reflow
   timerFill.style.transition = `transform ${state.timerDurationMs}ms linear, background-color .2s ease`;
   timerFill.style.transform = 'scaleX(0)';
@@ -204,12 +207,12 @@ function lockInAnswer(value){
 }
 
 function updateMeta(){
-  metaProgress.innerHTML = `<b>${state.currentIndex+1}</b> / ${state.totalQuestions}`;
+  metaProgress.textContent = `${state.currentIndex+1} / ${state.totalQuestions}`;
   const attempted = state.currentIndex;
   const acc = attempted === 0 ? 100 : Math.round((state.correctCount/attempted)*100);
-  metaAcc.innerHTML = `<b>${acc}%</b> accuracy`;
+  metaAcc.textContent = `${acc}%`;
   const avg = attempted === 0 ? null : state.times.reduce((a,b)=>a+b,0)/attempted/1000;
-  metaAvg.innerHTML = avg === null ? `<b>—</b> avg` : `<b>${avg.toFixed(1)}s</b> avg`;
+  metaAvg.textContent = avg === null ? '—' : `${avg.toFixed(1)}s`;
 }
 
 function finishRound(){
