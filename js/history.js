@@ -1,284 +1,228 @@
 // ============================================================
-// HISTORY.JS — history view, per-skill stats, export/import
+// HISTORY.JS — History Overview screen (Step 4a)
+// Trend card (shared TrendChart module), per-skill grid, recent sessions
+// list with a range/type popover, export/import.
+//
+// Step 4b (not yet built): "See full history" and tapping a skill card are
+// left as guarded no-ops — they should open Full History / Skill Detail.
 // ============================================================
 
-// ---------- history view ----------
-const skillLabels = { half:'Halving', x2:'× 2', x3:'× 3', add:'Additions', mixed:'Mixed' };
+// 'mixed' isn't in skillDisplayLabels (ui.js only covers the 4 real skills),
+// but a session can be 'mixed' if it came from a multi-skill challenge code.
+const SKILL_LABEL_ALL = Object.assign({ mixed: 'Mixed' }, skillDisplayLabels);
 
-// One-line range/count summary for a single session's saved config, shown on its history row.
-// Mixed rounds list each included skill's range on its own line.
-function describeSessionConfig(s){
-  if(!s.config || !s.config.cfg) return '';
-  if(s.skill === 'mixed'){
-    const included = s.config.included || Object.keys(s.config.cfg);
-    return included.map(k => describeSkillConfig(k, s.config.cfg[k])).join(' · ');
+// ---------- helpers ----------
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatSessionDate(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  const time = d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+  return (isToday ? 'Today' : (MONTH_SHORT[d.getMonth()] + ' ' + d.getDate())) + ', ' + time;
+}
+
+// Difficulty label + range/parity detail for one session's level popover.
+// Mixed-skill sessions (challenge codes) don't have one single range to show,
+// so they just show "Mixed" with no clickable detail.
+function sessionLevelInfo(s){
+  if(s.skill === 'mixed' || !s.config || !s.config.cfg){
+    return { level: 'Mixed', hasDetail: false };
   }
-  return describeSkillConfig(s.skill, s.config.cfg);
+  const cfg = s.config.cfg;
+  const level = difficultyLabels[matchingDifficultyForConfig(s.skill, cfg)];
+  const range = cfg.min + '–' + cfg.max + (s.skill === 'add' ? (', ' + (cfg.count || 2) + ' nums') : '');
+  const parityLabel = { any:'Any', even:'Even only', odd:'Odd only' }[cfg.parity] || 'Any';
+  return { level, range, parity: parityLabel, hasDetail: true };
 }
 
-// Difficulty + range string for one skill's config, e.g. "Easy (100–299)" or
-// "Custom (1–999, 3 nums)" for addition.
-function rangeStr(key, cfg){
-  if(!cfg) return '';
-  const diff = difficultyLabels[matchingDifficultyForConfig(key, cfg)];
-  const detail = key === 'add' ? `${cfg.min}–${cfg.max}, ${cfg.count || 2} nums` : `${cfg.min}–${cfg.max}`;
-  return `${diff} (${detail})`;
-}
+// ---------- trend card (title, chart, current avg/acc, growth stat) ----------
+function renderHistTrend(){
+  const trendPoints = sessions.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
+  const mounted = TrendChart.mount(document.getElementById('histTrend'), trendPoints);
 
-// For the per-skill summary: if every session used the exact same difficulty/range (and
-// count, for addition), show it; otherwise say it varies rather than trying to combine them.
-function summarizeRangeAcrossSessions(key, list){
-  const getCfg = (s) => s.skill === 'mixed' ? (s.config?.cfg?.[key]) : s.config?.cfg;
-  const strs = list.map(s => rangeStr(key, getCfg(s))).filter(Boolean);
-  if(strs.length === 0) return '';
-  const allSame = strs.every(s => s === strs[0]);
-  return allSame ? strs[0] : 'difficulty varies';
-}
+  const titleEl = document.getElementById('histTrendTitle');
+  const avgEl = document.getElementById('histCurrentAvg');
+  const accEl = document.getElementById('histCurrentAcc');
+  const growthEl = document.getElementById('histGrowth');
+  const growthLblEl = document.getElementById('histGrowthLbl');
 
-// 'all' shows every session on the chart; otherwise filters the chart + count to one skill.
-// This is chart/count display only — the per-skill improvement summary below always covers all skills.
-let historySkillFilter = 'all';
-
-function buildSkillFilterSeg(){
-  const seg = document.getElementById('skillFilterSeg');
-  const present = Array.from(new Set(sessions.map(s => s.skill)));
-  if(present.length <= 1){
-    seg.style.display = 'none';
+  if(!mounted || mounted.pts.length === 0){
+    titleEl.textContent = 'Getting started';
+    avgEl.textContent = '—';
+    accEl.textContent = '—';
+    growthEl.textContent = '—';
+    growthEl.className = 'num';
+    growthLblEl.textContent = '';
     return;
   }
-  seg.style.display = 'flex';
-  seg.innerHTML = '';
-  const options = [['all','All']].concat(present.map(k => [k, skillLabels[k] || k]));
-  options.forEach(([key,label]) => {
-    const btn = document.createElement('button');
-    btn.textContent = label;
-    btn.dataset.key = key;
-    if(key === historySkillFilter) btn.classList.add('active');
-    seg.appendChild(btn);
+
+  const pts = mounted.pts; // oldest -> newest
+  const last = pts[pts.length - 1];
+  avgEl.textContent = last.val.toFixed(1) + 's';
+  accEl.textContent = last.acc + '%';
+
+  if(pts.length < 2){
+    titleEl.textContent = 'Your progress';
+    growthEl.textContent = '—';
+    growthEl.className = 'num';
+    growthLblEl.textContent = 'play more to see a trend';
+    return;
+  }
+
+  const first = pts[0];
+  const pct = first.val === 0 ? 0 : Math.round(((first.val - last.val) / first.val) * 100);
+  titleEl.textContent = pct > 2 ? 'Getting faster' : (pct < -2 ? 'Slowing down' : 'Holding steady');
+  growthEl.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+  growthEl.className = 'num ' + (pct >= 0 ? 'pos' : 'neg');
+  growthLblEl.textContent = (pct >= 0 ? 'faster' : 'slower') + ' vs ' + first.label;
+}
+
+// ---------- per-skill grid (side column) ----------
+function renderHistSkillGrid(){
+  const grid = document.getElementById('histSkillGrid');
+  grid.innerHTML = '';
+  SKILL_ORDER.forEach(key => {
+    const skillSessions = sessions.filter(s => s.skill === key);
+    const hasData = skillSessions.length > 0;
+    const avg = hasData ? skillSessions.reduce((a,s) => a+s.avgTime, 0) / skillSessions.length : null;
+    const acc = hasData ? Math.round(skillSessions.reduce((a,s) => a+s.accuracy, 0) / skillSessions.length) : null;
+
+    const card = document.createElement('button');
+    card.className = 'skill-card ' + SKILL_CLASS[key];
+    card.dataset.skill = key;
+    card.innerHTML = `
+      <div class="sk-top">
+        <div class="sk-top-left">
+          <div class="sk-icon">${SKILL_ICON[key]}</div>
+          <div class="sk-name">${skillDisplayLabels[key]}</div>
+        </div>
+        <svg class="sk-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div class="sk-nums">
+        <div class="sk-stat"><div class="num">${hasData ? avg.toFixed(1)+'s' : '—'}</div><div class="lbl">Avg time</div></div>
+        <div class="sk-stat"><div class="num">${hasData ? acc+'%' : '—'}</div><div class="lbl">Accuracy</div></div>
+      </div>
+    `;
+    grid.appendChild(card);
   });
 }
-document.getElementById('skillFilterSeg').addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  historySkillFilter = btn.dataset.key;
-  renderHistory();
+
+function openSkillDetail(key){
+  // TODO (Step 4b): Skill Detail screen doesn't exist yet — no-op for now.
+}
+document.getElementById('histSkillGrid').addEventListener('click', (e) => {
+  const card = e.target.closest('.skill-card');
+  if(!card) return;
+  openSkillDetail(card.dataset.skill);
 });
 
-function renderHistory(){
-  const list = document.getElementById('sessionsList');
-  const svg = document.getElementById('chartSvg');
-  const emptyChartNote = document.getElementById('emptyChartNote');
-  const chartTitle = document.getElementById('chartTitle');
-  list.innerHTML = '';
-  svg.innerHTML = '';
+// ---------- recent sessions list ----------
+const RECENT_SESSIONS_SHOWN = 10;
 
+function renderRecentSessions(){
+  const list = document.getElementById('sessionsList');
   if(sessions.length === 0){
-    list.innerHTML = '<div class="empty-state">No rounds played yet. Finish a round to see your progress here.</div>';
-    emptyChartNote.style.display = 'block';
-    emptyChartNote.textContent = 'Play a round to see your trend here.';
-    document.getElementById('skillFilterSeg').style.display = 'none';
-    document.getElementById('perSkillStatsList').innerHTML = '';
+    list.innerHTML = '<div class="empty-state">No rounds played yet. Finish a round to see it here.</div>';
     return;
   }
-
-  buildSkillFilterSeg();
-  renderPerSkillStats();
-
-  const filtered = historySkillFilter === 'all' ? sessions : sessions.filter(s => s.skill === historySkillFilter);
-  chartTitle.textContent = historySkillFilter === 'all'
-    ? 'Average answer time per round (seconds)'
-    : `Average answer time — ${skillLabels[historySkillFilter] || historySkillFilter} (seconds)`;
-
-  const recent = filtered.slice(-15);
-
-  if(recent.length === 0){
-    emptyChartNote.style.display = 'block';
-    emptyChartNote.textContent = 'No rounds for this skill yet.';
-  } else if(recent.length < 2){
-    emptyChartNote.style.display = 'block';
-    emptyChartNote.textContent = 'Play a couple more rounds to see a trend line here.';
-  } else {
-    emptyChartNote.style.display = 'none';
-  }
-  if(recent.length === 0) return;
-
-  // read live theme colors so the chart matches light/dark mode
-  const styles = getComputedStyle(document.documentElement);
-  const colAccent = styles.getPropertyValue('--accent').trim() || '#F4B740';
-  const colBorder = styles.getPropertyValue('--border').trim() || '#262B33';
-  const colTextDim = styles.getPropertyValue('--text-dim').trim() || '#7C838F';
-  const colBg = styles.getPropertyValue('--bg-raised').trim() || '#1B1F26';
-
-  const ns = 'http://www.w3.org/2000/svg';
-  const W = 640, H = 240;
-  const PAD_L = 42, PAD_R = 16, PAD_T = 14, PAD_B = 34;
-  const plotW = W - PAD_L - PAD_R;
-  const plotH = H - PAD_T - PAD_B;
-
-  const times = recent.map(s => s.avgTime);
-  const rawMax = Math.max(...times);
-  const maxT = rawMax <= 0 ? 1 : Math.ceil(rawMax * 1.2 * 2) / 2; // round up to nearest 0.5
-  const minT = 0;
-
-  const stepX = recent.length > 1 ? plotW / (recent.length - 1) : 0;
-  function xFor(i){ return recent.length === 1 ? PAD_L + plotW/2 : PAD_L + i*stepX; }
-  function yFor(t){ return PAD_T + plotH - ((t-minT)/(maxT-minT||1))*plotH; }
-
-  // --- Y axis gridlines + labels (5 ticks) ---
-  const TICKS = 5;
-  for(let i=0;i<=TICKS;i++){
-    const val = (maxT/TICKS)*i;
-    const y = yFor(val);
-
-    const gridline = document.createElementNS(ns,'line');
-    gridline.setAttribute('x1', PAD_L); gridline.setAttribute('x2', W-PAD_R);
-    gridline.setAttribute('y1', y); gridline.setAttribute('y2', y);
-    gridline.setAttribute('stroke', colBorder);
-    gridline.setAttribute('stroke-width', '1');
-    svg.appendChild(gridline);
-
-    const label = document.createElementNS(ns,'text');
-    label.setAttribute('x', PAD_L - 8);
-    label.setAttribute('y', y + 4);
-    label.setAttribute('text-anchor', 'end');
-    label.setAttribute('font-size', '11');
-    label.textContent = val.toFixed(1) + 's';
-    svg.appendChild(label);
-  }
-
-  // --- trend line ---
-  let path = '';
-  recent.forEach((s,i) => {
-    const x = xFor(i), y = yFor(s.avgTime);
-    path += (i===0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-  });
-  const line = document.createElementNS(ns,'path');
-  line.setAttribute('d', path.trim());
-  line.setAttribute('fill','none');
-  line.setAttribute('stroke', colAccent);
-  line.setAttribute('stroke-width','2.5');
-  line.setAttribute('stroke-linecap','round');
-  line.setAttribute('stroke-linejoin','round');
-  svg.appendChild(line);
-
-  // --- points + X axis date labels ---
-  recent.forEach((s,i) => {
-    const x = xFor(i), y = yFor(s.avgTime);
-    const dot = document.createElementNS(ns,'circle');
-    dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 4);
-    dot.setAttribute('fill', colBg);
-    dot.setAttribute('stroke', colAccent);
-    dot.setAttribute('stroke-width','2');
-    svg.appendChild(dot);
-
-    // show every label if few points, otherwise thin them out to avoid overlap
-    const showLabel = recent.length <= 8 || i === 0 || i === recent.length-1 || i % Math.ceil(recent.length/6) === 0;
-    if(showLabel){
-      const d = new Date(s.date);
-      const label = document.createElementNS(ns,'text');
-      label.setAttribute('x', x);
-      label.setAttribute('y', H - PAD_B + 18);
-      label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('font-size', '10.5');
-      label.textContent = d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
-      svg.appendChild(label);
-    }
-  });
-
-  // --- axis lines (drawn last-ish, under points but over gridlines is fine either order) ---
-  const xAxis = document.createElementNS(ns,'line');
-  xAxis.setAttribute('x1', PAD_L); xAxis.setAttribute('x2', W-PAD_R);
-  xAxis.setAttribute('y1', PAD_T+plotH); xAxis.setAttribute('y2', PAD_T+plotH);
-  xAxis.setAttribute('stroke', colTextDim);
-  xAxis.setAttribute('stroke-width', '1.2');
-  svg.insertBefore(xAxis, svg.firstChild);
-
-  [...filtered].reverse().slice(0,25).forEach(s => {
-    const row = document.createElement('div');
-    row.className = 'session-row';
-    const d = new Date(s.date);
-    const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' · ' +
-                    d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
-    row.innerHTML = `
-      <div>
-        <div class="sr-skill">${skillLabels[s.skill] || s.skill}${s.fromChallenge ? '<span class="practice-badge">Challenge</span>' : ''}</div>
-        <div class="sr-date">${dateStr}</div>
-        <div class="sr-config">${describeSessionConfig(s)}</div>
+  const recent = [...sessions].reverse().slice(0, RECENT_SESSIONS_SHOWN);
+  list.innerHTML = recent.map((s, i) => {
+    const info = sessionLevelInfo(s);
+    const levelCell = info.hasDetail
+      ? `<div class="sr-cell sr-level" data-idx="${i}"><span class="sr-level-txt">${info.level}</span></div>`
+      : `<div class="sr-cell sr-level">${info.level}</div>`;
+    const popover = info.hasDetail
+      ? `<div class="level-popover" id="lp-${i}">
+          <div class="lp-row"><span>Range</span><b>${info.range}</b></div>
+          <div class="lp-row"><span>Type</span><b>${info.parity}</b></div>
+        </div>`
+      : '';
+    return `<div class="session-row">
+      <div class="sr-line1">
+        <div class="sr-cell sr-date">${formatSessionDate(s.date)}</div>
+        <div class="sr-cell sr-skill">${SKILL_LABEL_ALL[s.skill] || s.skill}</div>
       </div>
-      <div class="sr-stats">
-        <span><b>${s.questions || '—'}</b> Qs</span>
-        <span><b>${s.accuracy}%</b> acc</span>
-        <span><b>${s.avgTime.toFixed(1)}s</b> avg</span>
-        <span><b>${s.bestTime.toFixed(1)}s</b> best</span>
+      <div class="sr-line2">
+        ${levelCell}
+        <div class="sr-cell sr-qs">${s.questions || '—'} Qs</div>
+        <div class="sr-cell sr-avg">${s.avgTime.toFixed(1)}s avg</div>
+        <div class="sr-cell sr-acc">${s.accuracy}% acc</div>
       </div>
-    `;
-    list.appendChild(row);
+      ${popover}
+    </div>`;
+  }).join('');
+}
+
+// Level popover: clicking/tapping a level cell toggles a small box with that
+// session's exact range/type. One-time delegation on the stable #sessionsList
+// parent (not re-bound per render) since the list is rebuilt every renderHistory().
+let openLevelPop = null;
+function closeLevelPop(){
+  if(openLevelPop){ openLevelPop.classList.remove('show'); openLevelPop = null; }
+}
+function positionLevelPop(cell, pop){
+  const row = cell.closest('.session-row');
+  const txt = cell.querySelector('.sr-level-txt') || cell;
+  const rowRect = row.getBoundingClientRect(), txtRect = txt.getBoundingClientRect();
+  const anchorCenter = (txtRect.left - rowRect.left) + txtRect.width / 2;
+  const anchorBottom = (txtRect.bottom - rowRect.top) + 10;
+  pop.style.left = '0px';
+  pop.style.top = anchorBottom + 'px';
+  pop.style.setProperty('--lp-arrow-x', '16px');
+  pop.classList.add('show');
+  const popW = pop.offsetWidth;
+  const left = Math.min(Math.max(0, anchorCenter - popW / 2), rowRect.width - popW);
+  pop.style.left = left + 'px';
+  pop.style.setProperty('--lp-arrow-x', (anchorCenter - left) + 'px');
+}
+const sessionsListEl = document.getElementById('sessionsList');
+sessionsListEl.addEventListener('click', (e) => {
+  const cell = e.target.closest('.sr-level');
+  if(!cell){ closeLevelPop(); return; }
+  const pop = document.getElementById('lp-' + cell.dataset.idx);
+  if(!pop) return;
+  if(openLevelPop && openLevelPop !== pop) openLevelPop.classList.remove('show');
+  const willShow = !pop.classList.contains('show');
+  if(willShow) positionLevelPop(cell, pop); else pop.classList.remove('show');
+  openLevelPop = willShow ? pop : null;
+  e.stopPropagation();
+});
+document.addEventListener('click', closeLevelPop);
+// Desktop only: hover also reveals it. Skipped on touch — otherwise the first
+// tap only triggers the synthetic hover state and needs a second tap to click.
+if(window.matchMedia('(hover: hover)').matches){
+  sessionsListEl.addEventListener('mouseover', (e) => {
+    const cell = e.target.closest('.sr-level');
+    if(!cell) return;
+    const pop = document.getElementById('lp-' + cell.dataset.idx);
+    if(pop) positionLevelPop(cell, pop);
+  });
+  sessionsListEl.addEventListener('mouseout', (e) => {
+    const cell = e.target.closest('.sr-level');
+    if(!cell) return;
+    const pop = document.getElementById('lp-' + cell.dataset.idx);
+    if(pop && pop !== openLevelPop) pop.classList.remove('show');
   });
 }
 
-// ---------- per-skill improvement summary ----------
-// Compares each skill's average time on its most recent rounds vs its earlier rounds,
-// so "improving" or "slowing down" reflects a real trend, not just the last round.
-function renderPerSkillStats(){
-  const container = document.getElementById('perSkillStatsList');
-  container.innerHTML = '';
-  const bySkill = {};
-  sessions.forEach(s => {
-    if(!bySkill[s.skill]) bySkill[s.skill] = [];
-    bySkill[s.skill].push(s);
-  });
+document.getElementById('btnSeeFullHistory').addEventListener('click', () => {
+  // TODO (Step 4b): Full History screen doesn't exist yet — no-op for now.
+});
 
-  Object.keys(bySkill).forEach(key => {
-    const list = bySkill[key];
-    const n = list.length;
-    const avgOverall = list.reduce((a,s)=>a+s.avgTime,0)/n;
-    const bestOverall = Math.min(...list.map(s=>s.bestTime));
-    const accOverall = Math.round(list.reduce((a,s)=>a+s.accuracy,0)/n);
+// ---------- topbar: back + export/import (with hover/touch tooltips) ----------
+document.getElementById('btnHistoryBack').addEventListener('click', () => showView('home'));
 
-    let trendText = 'Not enough rounds yet';
-    let trendClass = '';
-    if(n >= 4){
-      const half = Math.floor(n/2);
-      const earlier = list.slice(0, half);
-      const laterHalf = list.slice(half);
-      const earlierAvg = earlier.reduce((a,s)=>a+s.avgTime,0)/earlier.length;
-      const laterAvg = laterHalf.reduce((a,s)=>a+s.avgTime,0)/laterHalf.length;
-      const diff = earlierAvg - laterAvg; // positive = getting faster
-      const pct = Math.abs(diff/earlierAvg*100);
-      if(pct < 3){
-        trendText = 'Holding steady';
-      } else if(diff > 0){
-        trendText = `${pct.toFixed(0)}% faster recently`;
-        trendClass = 'good';
-      } else {
-        trendText = `${pct.toFixed(0)}% slower recently`;
-      }
-    }
-
-    const rangeSummary = key === 'mixed' ? '' : summarizeRangeAcrossSessions(key, list);
-
-    const row = document.createElement('div');
-    row.className = 'skill-stat-row';
-    row.innerHTML = `
-      <span class="ssr-name">${skillLabels[key] || key}</span>
-      <span class="ssr-nums">
-        <span><b>${n}</b> rounds</span>
-        <span><b>${accOverall}%</b> acc</span>
-        <span><b>${avgOverall.toFixed(1)}s</b> avg</span>
-        <span><b>${bestOverall.toFixed(1)}s</b> best</span>
-        <span style="${trendClass==='good' ? 'color:var(--good);' : ''}"><b>${trendText}</b></span>
-      </span>
-      ${rangeSummary ? `<div class="ssr-range">${rangeSummary}</div>` : ''}
-    `;
-    container.appendChild(row);
-  });
-
-  if(Object.keys(bySkill).length === 0){
-    container.innerHTML = '<div class="empty-state">No rounds played yet.</div>';
-  }
+function wireTooltipBtn(btnId, tipId){
+  const btn = document.getElementById(btnId), tip = document.getElementById(tipId);
+  let timer = null;
+  btn.addEventListener('touchstart', () => { timer = setTimeout(() => tip.classList.add('show'), 350); }, {passive:true});
+  btn.addEventListener('touchend', () => { clearTimeout(timer); setTimeout(() => tip.classList.remove('show'), 1200); });
+  btn.addEventListener('mouseenter', () => tip.classList.add('show'));
+  btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
 }
+wireTooltipBtn('btnExportHistory', 'tipExportHistory');
+wireTooltipBtn('btnImportHistory', 'tipImportHistory');
 
-// ---------- export / import ----------
 document.getElementById('btnExportHistory').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(sessions, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -315,3 +259,10 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
   importFileInput.value = '';
 });
+
+// ---------- entry point (called by ui.js's btnHistory / historyCard handlers) ----------
+function renderHistory(){
+  renderHistTrend();
+  renderHistSkillGrid();
+  renderRecentSessions();
+}

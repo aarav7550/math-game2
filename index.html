@@ -320,33 +320,70 @@
 
   <!-- HISTORY -->
   <div class="view" id="view-history">
-    <div class="history-head">
-      <button class="back-link" id="btnBackHome">← Back</button>
-      <h2>Your progress</h2>
-      <div class="history-actions">
-        <button class="tiny-btn" id="btnExportHistory">Export</button>
-        <button class="tiny-btn" id="btnImportHistory">Import</button>
-      </div>
-    </div>
-    <div class="storage-note">
-      Progress is saved in <b>this browser only</b>, and survives closing the tab or restarting your computer. It's tied to this browser profile though — clearing browsing data, using a different browser, or Incognito mode won't have it. Use <b>Export</b> now and then to back it up as a file, or to move it to another device.
-    </div>
-    <div class="history-columns">
-      <div class="history-col-main">
-        <div class="chart-wrap">
-          <div class="chart-title" id="chartTitle">Average answer time per round (seconds)</div>
-          <div class="segmented" id="skillFilterSeg" style="margin-bottom:14px;"></div>
-          <svg id="chartSvg" viewBox="0 0 640 240" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="empty-chart-note" id="emptyChartNote" style="display:none;">Play a couple more rounds to see a trend here.</div>
-        </div>
-        <div class="sessions-list" id="sessionsList"></div>
-      </div>
-      <div class="history-col-side">
-        <div class="breakdown-section">
-          <div class="breakdown-title">By skill — are you improving?</div>
-          <div id="perSkillStatsList" class="detail-list"></div>
+    <div class="wrap">
+
+      <div class="topbar">
+        <button class="back-link" id="btnHistoryBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <div class="page-title">Your progress</div>
+        <div class="topbar-right">
+          <button class="icon-only-btn" id="btnExportHistory">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            <span class="icon-tooltip" id="tipExportHistory">Export your progress as a file</span>
+          </button>
+          <button class="icon-only-btn" id="btnImportHistory">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span class="icon-tooltip" id="tipImportHistory">Import progress from a file</span>
+          </button>
         </div>
       </div>
+
+      <div class="history-columns">
+        <div class="history-col-main">
+          <div class="trend-card">
+            <div class="trend-top">
+              <div class="tc-tag">Last 30 days</div>
+              <div class="tc-title" id="histTrendTitle">Getting started</div>
+              <div class="tc-desc">Average answer time per session, across all skills</div>
+              <div class="tc-legend">
+                <span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>
+                <span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>
+              </div>
+            </div>
+
+            <div class="hist-chart" id="histTrend"></div>
+
+            <div class="trend-bottom">
+              <div class="trend-stats-row">
+                <div class="trend-stat"><div class="num" id="histCurrentAvg">—</div><div class="lbl">Current avg</div></div>
+                <div class="trend-stat"><div class="num" id="histCurrentAcc">—</div><div class="lbl">Accuracy</div></div>
+              </div>
+              <div class="trend-stat growth">
+                <div class="num" id="histGrowth">—</div>
+                <div class="lbl" id="histGrowthLbl"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="recent-sessions-block">
+            <div class="section-label">Recent sessions</div>
+            <div class="sessions-list" id="sessionsList"></div>
+            <button class="see-full-btn" id="btnSeeFullHistory">See full history</button>
+          </div>
+        </div>
+
+        <div class="history-col-side">
+          <div class="section-label">By skill — tap to see full history</div>
+          <div class="skill-grid" id="histSkillGrid"></div>
+        </div>
+      </div>
+
+      <div class="storage-note" style="margin-top:20px;">
+        Progress is saved in <b>this browser only</b>, and survives closing the tab or restarting your computer. It's tied to this browser profile though — clearing browsing data, using a different browser, or Incognito mode won't have it. Use <b>Export</b> now and then to back it up as a file, or to move it to another device.
+      </div>
+
     </div>
   </div>
 
@@ -393,6 +430,7 @@
 <script src="js/storage.js"></script>
 <script src="js/skills.js"></script>
 <script src="js/game.js"></script>
+<script src="js/trendchart.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/history.js"></script>
 
