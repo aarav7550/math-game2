@@ -24,9 +24,20 @@ const TrendChart = (function(){
 
   function mount(container, sessionPoints){
     const today = dayStart(Date.now());
-    const rows = (sessionPoints || []).map(s => ({
-      daysAgo: Math.round((today - dayStart(s.ts)) / DAY_MS), val: s.val, acc: s.acc
-    })).filter(r => r.daysAgo >= 0 && r.daysAgo <= WINDOW_DAYS)
+    // Group sessions by calendar day and average val/acc within each day — one
+    // point per day on the graph, not one point per session played that day.
+    const byDay = new Map(); // daysAgo -> {valSum, accSum, count}
+    (sessionPoints || []).forEach(s => {
+      const daysAgo = Math.round((today - dayStart(s.ts)) / DAY_MS);
+      if(daysAgo < 0 || daysAgo > WINDOW_DAYS) return;
+      const entry = byDay.get(daysAgo) || { valSum: 0, accSum: 0, count: 0 };
+      entry.valSum += s.val;
+      entry.accSum += s.acc;
+      entry.count += 1;
+      byDay.set(daysAgo, entry);
+    });
+    const rows = Array.from(byDay.entries())
+      .map(([daysAgo, e]) => ({ daysAgo, val: e.valSum / e.count, acc: e.accSum / e.count }))
       .sort((a,b) => b.daysAgo - a.daysAgo);
 
     if(!rows.length){
