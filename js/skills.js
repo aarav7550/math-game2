@@ -73,6 +73,8 @@ const views = {
   play: document.getElementById('view-play'),
   results: document.getElementById('view-results'),
   history: document.getElementById('view-history'),
+  historySkill: document.getElementById('view-history-skill'),
+  historyFull: document.getElementById('view-history-full'),
   challenge: document.getElementById('view-challenge'),
 };
 function showView(name){

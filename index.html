@@ -387,6 +387,89 @@
     </div>
   </div>
 
+  <!-- HISTORY: SKILL DETAIL (Step 4b) -->
+  <div class="view" id="view-history-skill">
+    <div class="wrap">
+
+      <div class="topbar">
+        <button class="back-link" id="btnSkdBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <div class="page-title"><span class="pt-icon" id="skdPageTitleIcon"></span><span id="skdPageTitleText"></span></div>
+        <div class="topbar-right">
+          <button class="icon-only-btn" id="btnSkdExport">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            <span class="icon-tooltip" id="tipSkdExport">Export your progress as a file</span>
+          </button>
+          <button class="icon-only-btn" id="btnSkdImport">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+            <span class="icon-tooltip" id="tipSkdImport">Import progress from a file</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="page-main">
+        <div class="trend-card">
+          <div class="trend-top">
+            <div class="tc-tag">Last 30 days</div>
+            <div class="tc-title" id="skdTrendTitle">Getting started</div>
+            <div class="tc-desc" id="skdTrendDesc"></div>
+            <div class="tc-legend">
+              <span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>
+              <span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>
+            </div>
+          </div>
+
+          <div class="hist-chart" id="skdTrend"></div>
+
+          <div class="trend-bottom">
+            <div class="trend-stats-row">
+              <div class="trend-stat"><div class="num" id="skdCurrentAvg">—</div><div class="lbl">Current avg</div></div>
+              <div class="trend-stat"><div class="num" id="skdCurrentAcc">—</div><div class="lbl">Accuracy</div></div>
+            </div>
+            <div class="trend-stat growth">
+              <div class="num" id="skdGrowth">—</div>
+              <div class="lbl" id="skdGrowthLbl"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label" id="skdSectionLabel">All sessions</div>
+          <div class="sessions-list" id="skdSessionsList"></div>
+          <div class="empty-list-note" id="skdEmptyNote" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="storage-note" style="margin-top:20px;">
+        Progress is saved in <b>this browser only</b>, and survives closing the tab or restarting your computer. It's tied to this browser profile though — clearing browsing data, using a different browser, or Incognito mode won't have it. Use <b>Export</b> now and then to back it up as a file, or to move it to another device.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HISTORY: FULL HISTORY (Step 4b) -->
+  <div class="view" id="view-history-full">
+    <div class="wrap">
+
+      <div class="topbar">
+        <button class="back-link" id="btnFullBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <div class="page-title">Full history</div>
+      </div>
+
+      <div class="count-note" id="fullCountNote"></div>
+
+      <div class="sessions-list" id="fullSessionsList"></div>
+      <div class="pagination" id="fullPagination"></div>
+      <div class="empty-state boxed" id="fullEmptyState" style="display:none;">No sessions yet — play a round to start your history.</div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- exit confirm modal -->

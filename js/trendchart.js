@@ -157,7 +157,7 @@ const TrendChart = (function(){
     function showAt(i){
       const p = pts[i], r = svg.getBoundingClientRect();
       ctDate.textContent = p.label;
-      ctVal.textContent = p.val.toFixed(1)+'s avg · '+p.acc+'% acc';
+      ctVal.textContent = p.val.toFixed(1)+'s avg · '+Math.round(p.acc)+'% acc';
       tooltip.classList.add('show');
       const w = tooltip.offsetWidth, wrapW = wrap.clientWidth;
       const cx = p.x * (r.width / 640);
