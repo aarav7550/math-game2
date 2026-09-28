@@ -11,6 +11,18 @@
 // ============================================================
 const TrendChart = (function(){
   let seq = 0;
+  // One shared pair of document listeners for every mounted chart (re-mounting on each render
+  // used to stack a fresh pair per mount). Entries whose chart was replaced are dropped.
+  const outsideHandlers = [];
+  function outside(e){
+    for(let i = outsideHandlers.length - 1; i >= 0; i--){
+      const h = outsideHandlers[i];
+      if(!h.wrap.isConnected){ outsideHandlers.splice(i, 1); continue; }
+      if(!h.wrap.contains(e.target)) h.hide();
+    }
+  }
+  document.addEventListener('touchstart', outside, {passive:true});
+  document.addEventListener('click', outside);
   const W = 640, H = 260, padL = 44, padR = 34, padT = 16, padB = 32;
   const WINDOW_DAYS = 30, LABELS = 6, DAY_MS = 86400000;
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -22,15 +34,10 @@ const TrendChart = (function(){
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
 
-  // opts.legend  (default true)  — draw the Avg time / Accuracy legend strip above the plot.
-  //                               History passes false: its legend lives in the card header.
-  // opts.tooltip ('strip' | 'point', default 'strip') — 'strip': the info box replaces the legend
-  //                               strip right above the graph (Home). 'point': it floats above the
-  //                               hovered point, two lines (History / Skill Detail).
-  function mount(container, sessionPoints, opts){
-    opts = opts || {};
-    const showLegend = opts.legend !== false;
-    const tipPoint = opts.tooltip === 'point';
+  // ONE chart, used identically on Home, History Overview and History Skill Detail.
+  // (Earlier versions took an `opts` argument for a History-only variant — removed on purpose:
+  // the History pages must show exactly the same graph box as the Home dashboard.)
+  function mount(container, sessionPoints){
     const today = dayStart(Date.now());
     // Group sessions by calendar day and average val/acc within each day — one
     // point per day on the graph, not one point per session played that day.
@@ -56,15 +63,13 @@ const TrendChart = (function(){
     const gid = 'tcFill' + (++seq);
     container.innerHTML =
       '<div class="trend-chart-wrap">'
-      + (showLegend
-        ? '<div class="tc-head">'
-        +   '<div class="tc-legend">'
-        +     '<span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>'
-        +     '<span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>'
-        +   '</div>'
-        + '</div>'
-        : '')
-      + '<div class="chart-tooltip' + (tipPoint ? ' tt-point' : '') + '"><span class="ct-date"></span><span class="ct-val"></span></div>'
+      + '<div class="tc-head">'
+      +   '<div class="tc-legend">'
+      +     '<span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>'
+      +     '<span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="chart-tooltip"><span class="ct-date"></span><span class="ct-val"></span></div>'
       + '<svg class="trend-svg" viewBox="0 0 640 260" preserveAspectRatio="none">'
       +   '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
       +     '<stop offset="0%" stop-color="#5FC2FC" stop-opacity="0.32"/>'
@@ -108,7 +113,7 @@ const TrendChart = (function(){
     for(let g = 0; g <= steps; g++){
       const gv = yMax - g * stepVal, gy = yFor(gv);
       gridHtml += '<line x1="'+padL+'" y1="'+gy+'" x2="'+plotR+'" y2="'+gy+'" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2,4"/>';
-      labelHtml += '<text class="chart-axis-label" x="0" y="'+(gy+5)+'" fill="#8FA3BD" font-family="Inter">'+gv.toFixed(1)+'s</text>';
+      labelHtml += '<text class="chart-axis-label" x="0" y="'+(gy+5)+'" fill="#8FA3BD" font-family="Inter, sans-serif">'+gv.toFixed(1)+'s</text>';
     }
 
     let xLabelHtml = '';
@@ -116,7 +121,7 @@ const TrendChart = (function(){
       const d = WINDOW_DAYS - k * (WINDOW_DAYS / (LABELS - 1));
       const tx = xForDays(d);
       gridHtml += '<line x1="'+tx+'" y1="'+padT+'" x2="'+tx+'" y2="'+(H-padB+4)+'" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="2,4"/>';
-      xLabelHtml += '<text class="chart-axis-label" x="'+tx+'" y="'+(H-8)+'" fill="#8FA3BD" font-family="Inter" text-anchor="middle">'+labelFor(d, today)+'</text>';
+      xLabelHtml += '<text class="chart-axis-label" x="'+tx+'" y="'+(H-8)+'" fill="#8FA3BD" font-family="Inter, sans-serif" text-anchor="middle">'+labelFor(d, today)+'</text>';
     }
     gridLayer.innerHTML = gridHtml;
     axisLabels.innerHTML = labelHtml + xLabelHtml;
@@ -171,7 +176,6 @@ const TrendChart = (function(){
       tooltip.classList.add('show');
       const w = tooltip.offsetWidth, wrapW = wrap.clientWidth;
       const cx = p.x * (r.width / 640);
-      if(tipPoint) tooltip.style.top = (svg.offsetTop + p.y * (r.height / 260)) + 'px';
       tooltip.style.left = Math.min(Math.max(cx, w/2), wrapW - w/2) + 'px';
       crosshair.setAttribute('x1', p.x); crosshair.setAttribute('x2', p.x);
       crosshair.classList.add('show');
@@ -188,8 +192,7 @@ const TrendChart = (function(){
     hitArea.addEventListener('mouseleave', hide);
     hitArea.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointer(e.touches[0].clientX); }, {passive:false});
     hitArea.addEventListener('touchmove', (e) => { e.preventDefault(); handlePointer(e.touches[0].clientX); }, {passive:false});
-    document.addEventListener('touchstart', (e) => { if(!wrap.contains(e.target)) hide(); }, {passive:true});
-    document.addEventListener('click', (e) => { if(!wrap.contains(e.target)) hide(); });
+    outsideHandlers.push({ wrap: wrap, hide: hide });
 
     return { pts: pts };
   }

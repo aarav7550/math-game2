@@ -347,10 +347,6 @@
               <div class="tc-tag">Last 30 days</div>
               <div class="tc-title" id="histTrendTitle">Getting started</div>
               <div class="tc-desc">Average answer time per session, across all skills</div>
-              <div class="tc-legend">
-                <span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>
-                <span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>
-              </div>
             </div>
 
             <div class="hist-chart" id="histTrend"></div>
@@ -415,10 +411,6 @@
             <div class="tc-tag">Last 30 days</div>
             <div class="tc-title" id="skdTrendTitle">Getting started</div>
             <div class="tc-desc" id="skdTrendDesc"></div>
-            <div class="tc-legend">
-              <span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>
-              <span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>
-            </div>
           </div>
 
           <div class="hist-chart" id="skdTrend"></div>
@@ -516,6 +508,7 @@
 <script src="js/trendchart.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/history.js"></script>
+<script src="js/nav.js"></script>
 
 <script>
   // Register service worker for offline support + installability.
@@ -523,6 +516,16 @@
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
+    // When a newer service worker takes over (i.e. a new version was deployed), reload once
+    // so every device ends up on the same fresh files instead of a stale cached mix.
+    if (navigator.serviceWorker.controller) {
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }
   }
 </script>
 

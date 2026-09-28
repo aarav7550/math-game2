@@ -1,390 +1,348 @@
 // ============================================================
-// HISTORY.JS — History screens (Step 4)
-//   4a: Overview  (trend card, per-skill grid, recent sessions)
-//   4b: Skill Detail (one skill's trend + all its sessions)
-//       Full History (every session, paginated)
-// All three share: TrendChart, one level-popover helper, one export/import.
+// HISTORY.JS — History Overview, Skill Detail, Full History, export/import
+// All three screens draw their graph with the SAME shared TrendChart module the
+// Home dashboard uses (js/trendchart.js) — no History-only chart variant.
+// Depends on (loaded earlier): storage.js (sessions, saveSessions), skills.js (showView),
+// game.js (difficultyLabels), ui.js (SKILL_ICON, SKILL_CLASS, skillDisplayLabels,
+// matchingDifficultyForConfig), trendchart.js (TrendChart).
 // ============================================================
 
-// 'mixed' isn't in skillDisplayLabels (ui.js only covers the 4 real skills),
-// but a session can be 'mixed' if it came from a multi-skill challenge code.
-const SKILL_LABEL_ALL = Object.assign({ mixed: 'Mixed' }, skillDisplayLabels);
+const historySkillLabels = { half:'Halving', x2:'× 2', x3:'× 3', add:'Additions', mixed:'Mixed' };
+const PARITY_LABEL = { any:'Any', even:'Even only', odd:'Odd only' };
+const FULL_PAGE_SIZE = 15;
 
-// ---------- helpers ----------
-const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function formatSessionDate(ts){
+// ---------- small helpers ----------
+function fmtSessionDate(ts){
   const d = new Date(ts);
   const now = new Date();
-  const isToday = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  const time = d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
-  return (isToday ? 'Today' : (MONTH_SHORT[d.getMonth()] + ' ' + d.getDate())) + ', ' + time;
+  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  const time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
+  const day = sameDay ? 'Today' : d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  return day + ', ' + time;
 }
 
-// Difficulty label + range/parity detail for one session's level popover.
-// Mixed-skill sessions (challenge codes) don't have one single range to show,
-// so they just show "Mixed" with no clickable detail.
 function sessionLevelInfo(s){
-  if(s.skill === 'mixed' || !s.config || !s.config.cfg){
-    return { level: 'Mixed', hasDetail: false };
-  }
+  // Mixed rounds have no single range to show, so they get a plain non-clickable label.
+  if(s.skill === 'mixed' || !s.config || !s.config.cfg) return { label: s.skill === 'mixed' ? 'Mixed' : '—', range: null, type: null };
   const cfg = s.config.cfg;
-  const level = difficultyLabels[matchingDifficultyForConfig(s.skill, cfg)];
-  const range = cfg.min + '–' + cfg.max + (s.skill === 'add' ? (', ' + (cfg.count || 2) + ' nums') : '');
-  const parityLabel = { any:'Any', even:'Even only', odd:'Odd only' }[cfg.parity] || 'Any';
-  return { level, range, parity: parityLabel, hasDetail: true };
+  return {
+    label: difficultyLabels[matchingDifficultyForConfig(s.skill, cfg)],
+    range: cfg.min + '–' + cfg.max,
+    type: PARITY_LABEL[cfg.parity] || 'Any'
+  };
 }
 
-// The popover is a plain sibling inside the same .session-row as its level cell,
-// so no per-row ids are needed and the same markup works on all three lists.
-function levelCellHtml(info){
-  return info.hasDetail
-    ? `<div class="sr-cell sr-level"><span class="sr-level-txt">${info.level}</span></div>`
-    : `<div class="sr-cell sr-level">${info.level}</div>`;
-}
-function levelPopoverHtml(info){
-  return info.hasDetail
-    ? `<div class="level-popover">
-        <div class="lp-row"><span>Range</span><b>${info.range}</b></div>
-        <div class="lp-row"><span>Type</span><b>${info.parity}</b></div>
-      </div>`
-    : '';
-}
-
-// ---------- trend card (shared by Overview + Skill Detail) ----------
-// points: [{ ts, val, acc }] one per session; TrendChart itself averages them per day.
-function renderTrendCard(els, points){
-  const mounted = TrendChart.mount(els.mount, points, { legend:false, tooltip:'point' });
-
-  if(!mounted || mounted.pts.length === 0){
-    els.title.textContent = 'Getting started';
-    els.avg.textContent = '—';
-    els.acc.textContent = '—';
-    els.growth.textContent = '—';
-    els.growth.className = 'num';
-    els.growthLbl.textContent = '';
-    return;
-  }
-
-  const pts = mounted.pts; // oldest -> newest, one per day
-  const last = pts[pts.length - 1];
-  els.avg.textContent = last.val.toFixed(1) + 's';
-  els.acc.textContent = Math.round(last.acc) + '%';
-
-  if(pts.length < 2){
-    els.title.textContent = 'Your progress';
-    els.growth.textContent = '—';
-    els.growth.className = 'num';
-    els.growthLbl.textContent = 'play more to see a trend';
-    return;
-  }
-
-  const first = pts[0];
-  const pct = first.val === 0 ? 0 : Math.round(((first.val - last.val) / first.val) * 100);
-  els.title.textContent = pct > 2 ? 'Getting faster' : (pct < -2 ? 'Slowing down' : 'Holding steady');
-  els.growth.textContent = (pct >= 0 ? '+' : '') + pct + '%';
-  els.growth.className = 'num ' + (pct >= 0 ? 'pos' : 'neg');
-  els.growthLbl.textContent = (pct >= 0 ? 'faster' : 'slower') + ' vs ' + first.label;
-}
-function sessionsToPoints(list){
+function trendPointsFor(list){
   return list.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
 }
 
-function renderHistTrend(){
-  renderTrendCard({
-    mount: document.getElementById('histTrend'),
-    title: document.getElementById('histTrendTitle'),
-    avg: document.getElementById('histCurrentAvg'),
-    acc: document.getElementById('histCurrentAcc'),
-    growth: document.getElementById('histGrowth'),
-    growthLbl: document.getElementById('histGrowthLbl')
-  }, sessionsToPoints(sessions));
+// One row. `withSkill` false = Skill Detail layout (no skill column, page is already one skill).
+function sessionRowHtml(s, withSkill){
+  const lv = sessionLevelInfo(s);
+  const levelCell = lv.range
+    ? '<div class="sr-cell sr-level"><span class="sr-level-txt">' + lv.label + '</span></div>'
+    : '<div class="sr-cell sr-level-static">' + lv.label + '</div>';
+  const popover = lv.range
+    ? '<div class="level-popover">'
+      + '<div class="lp-row"><span>Range</span><b>' + lv.range + '</b></div>'
+      + '<div class="lp-row"><span>Type</span><b>' + lv.type + '</b></div>'
+      + '</div>'
+    : '';
+  const line2 = '<div class="sr-line2">'
+    + levelCell
+    + '<div class="sr-cell sr-qs">' + (s.questions || '—') + ' Qs</div>'
+    + '<div class="sr-cell sr-avg">' + s.avgTime.toFixed(1) + 's avg</div>'
+    + '<div class="sr-cell sr-acc">' + s.accuracy + '% acc</div>'
+    + '</div>';
+  if(withSkill){
+    return '<div class="session-row">'
+      + '<div class="sr-line1">'
+      +   '<div class="sr-cell sr-date">' + fmtSessionDate(s.date) + '</div>'
+      +   '<div class="sr-cell sr-skill">' + (historySkillLabels[s.skill] || s.skill) + '</div>'
+      + '</div>'
+      + line2 + popover + '</div>';
+  }
+  return '<div class="session-row">'
+    + '<div class="sr-cell sr-date">' + fmtSessionDate(s.date) + '</div>'
+    + line2 + popover + '</div>';
 }
 
-// ---------- per-skill grid (side column) ----------
-function renderHistSkillGrid(){
-  const grid = document.getElementById('histSkillGrid');
-  grid.innerHTML = '';
-  SKILL_ORDER.forEach(key => {
-    const skillSessions = sessions.filter(s => s.skill === key);
-    const hasData = skillSessions.length > 0;
-    const avg = hasData ? skillSessions.reduce((a,s) => a+s.avgTime, 0) / skillSessions.length : null;
-    const acc = hasData ? Math.round(skillSessions.reduce((a,s) => a+s.accuracy, 0) / skillSessions.length) : null;
-
-    const card = document.createElement('button');
-    card.className = 'skill-card ' + SKILL_CLASS[key];
-    card.dataset.skill = key;
-    card.innerHTML = `
-      <div class="sk-top">
-        <div class="sk-top-left">
-          <div class="sk-icon">${SKILL_ICON[key]}</div>
-          <div class="sk-name">${skillDisplayLabels[key]}</div>
-        </div>
-        <svg class="sk-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-      </div>
-      <div class="sk-nums">
-        <div class="sk-stat"><div class="num">${hasData ? avg.toFixed(1)+'s' : '—'}</div><div class="lbl">Avg time</div></div>
-        <div class="sk-stat"><div class="num">${hasData ? acc+'%' : '—'}</div><div class="lbl">Accuracy</div></div>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
+// ---------- level popover (one-time delegation per stable list container) ----------
+let openLevelPop = null;
+function closeLevelPop(){ if(openLevelPop){ openLevelPop.classList.remove('show'); openLevelPop = null; } }
+function positionLevelPop(cell, pop){
+  const row = cell.closest('.session-row');
+  const txt = cell.querySelector('.sr-level-txt') || cell;
+  const rowRect = row.getBoundingClientRect(), txtRect = txt.getBoundingClientRect();
+  const anchorCenter = (txtRect.left - rowRect.left) + txtRect.width / 2;
+  const anchorBottom = (txtRect.bottom - rowRect.top) + 10;
+  pop.style.left = '0px';
+  pop.style.top = anchorBottom + 'px';
+  pop.style.setProperty('--lp-arrow-x', '16px');
+  pop.classList.add('show');
+  const popW = pop.offsetWidth;
+  const left = Math.min(Math.max(0, anchorCenter - popW / 2), rowRect.width - popW);
+  pop.style.left = left + 'px';
+  pop.style.setProperty('--lp-arrow-x', (anchorCenter - left) + 'px');
 }
-document.getElementById('histSkillGrid').addEventListener('click', (e) => {
-  const card = e.target.closest('.skill-card');
-  if(!card) return;
-  openSkillDetail(card.dataset.skill);
-});
-
-// ---------- shared level popover ----------
-// Wired ONCE per stable list container (never re-bound per render). Clicking/tapping a
-// level cell toggles a small box with that session's exact range/type; on hover-capable
-// devices hovering also reveals it.
-function wireLevelPopovers(listEl){
-  let openPop = null;
-  function closePop(){ if(openPop){ openPop.classList.remove('show'); openPop = null; } }
-  function popFor(cell){
-    const row = cell.closest('.session-row');
-    return row ? row.querySelector('.level-popover') : null;
-  }
-  function positionPop(cell, pop){
-    const row = cell.closest('.session-row');
-    const txt = cell.querySelector('.sr-level-txt') || cell;
-    const rowRect = row.getBoundingClientRect(), txtRect = txt.getBoundingClientRect();
-    const anchorCenter = (txtRect.left - rowRect.left) + txtRect.width / 2;
-    const anchorBottom = (txtRect.bottom - rowRect.top) + 10;
-    pop.style.left = '0px';
-    pop.style.top = anchorBottom + 'px';
-    pop.style.setProperty('--lp-arrow-x', '16px');
-    pop.classList.add('show');
-    const popW = pop.offsetWidth;
-    const left = Math.min(Math.max(0, anchorCenter - popW / 2), rowRect.width - popW);
-    pop.style.left = left + 'px';
-    pop.style.setProperty('--lp-arrow-x', (anchorCenter - left) + 'px');
-  }
-  listEl.addEventListener('click', (e) => {
+function popFor(cell){ return cell.closest('.session-row').querySelector('.level-popover'); }
+function wireLevelPopovers(list){
+  list.addEventListener('click', (e) => {
     const cell = e.target.closest('.sr-level');
-    if(!cell){ closePop(); return; }
+    if(!cell){ closeLevelPop(); return; }
     const pop = popFor(cell);
     if(!pop) return;
-    if(openPop && openPop !== pop) openPop.classList.remove('show');
+    if(openLevelPop && openLevelPop !== pop) openLevelPop.classList.remove('show');
     const willShow = !pop.classList.contains('show');
-    if(willShow) positionPop(cell, pop); else pop.classList.remove('show');
-    openPop = willShow ? pop : null;
+    if(willShow) positionLevelPop(cell, pop); else pop.classList.remove('show');
+    openLevelPop = willShow ? pop : null;
     e.stopPropagation();
   });
-  document.addEventListener('click', (e) => { if(!listEl.contains(e.target)) closePop(); });
-  // Desktop only: hover also reveals it. Skipped on touch — otherwise the first
-  // tap only triggers the synthetic hover state and needs a second tap to click.
+  // desktop only: hover also reveals it (skipped on touch, where the first tap would only fire hover)
   if(window.matchMedia('(hover: hover)').matches){
-    listEl.addEventListener('mouseover', (e) => {
+    list.addEventListener('mouseover', (e) => {
       const cell = e.target.closest('.sr-level');
-      if(!cell) return;
+      if(!cell || cell.contains(e.relatedTarget)) return;
       const pop = popFor(cell);
-      if(pop && !pop.classList.contains('show')) positionPop(cell, pop);
+      if(pop) positionLevelPop(cell, pop);
     });
-    listEl.addEventListener('mouseout', (e) => {
+    list.addEventListener('mouseout', (e) => {
       const cell = e.target.closest('.sr-level');
-      if(!cell) return;
+      if(!cell || cell.contains(e.relatedTarget)) return;
       const pop = popFor(cell);
-      if(pop && pop !== openPop) pop.classList.remove('show');
+      if(pop && pop !== openLevelPop) pop.classList.remove('show');
     });
   }
 }
+document.addEventListener('click', closeLevelPop);
 
-// ---------- session row markup (Overview + Full History share this one) ----------
-function sessionRowHtml(s){
-  const info = sessionLevelInfo(s);
-  return `<div class="session-row">
-    <div class="sr-line1">
-      <div class="sr-cell sr-date">${formatSessionDate(s.date)}</div>
-      <div class="sr-cell sr-skill">${SKILL_LABEL_ALL[s.skill] || s.skill}</div>
-    </div>
-    <div class="sr-line2">
-      ${levelCellHtml(info)}
-      <div class="sr-cell sr-qs">${s.questions || '—'} Qs</div>
-      <div class="sr-cell sr-avg">${s.avgTime.toFixed(1)}s avg</div>
-      <div class="sr-cell sr-acc">${s.accuracy}% acc</div>
-    </div>
-    ${levelPopoverHtml(info)}
-  </div>`;
-}
-
-// ---------- Overview: recent sessions ----------
-const RECENT_SESSIONS_SHOWN = 10;
-function renderRecentSessions(){
-  const list = document.getElementById('sessionsList');
-  if(sessions.length === 0){
-    list.innerHTML = '<div class="empty-state">No rounds played yet. Finish a round to see it here.</div>';
-    return;
-  }
-  list.innerHTML = [...sessions].reverse().slice(0, RECENT_SESSIONS_SHOWN).map(sessionRowHtml).join('');
-}
-wireLevelPopovers(document.getElementById('sessionsList'));
-
-// ---------- Skill Detail ----------
-let currentSkillDetailKey = null;
-
-function renderSkillDetailSessions(key, skillSessions){
-  const list = document.getElementById('skdSessionsList');
-  const emptyNote = document.getElementById('skdEmptyNote');
-  if(skillSessions.length === 0){
-    list.style.display = 'none';
-    emptyNote.style.display = 'block';
-    emptyNote.textContent = 'No sessions yet for ' + skillDisplayLabels[key] + '.';
-    return;
-  }
-  list.style.display = 'flex';
-  emptyNote.style.display = 'none';
-  // Single-skill filter, so no skill column; every row has range/type detail.
-  list.innerHTML = [...skillSessions].reverse().map(s => {
-    const info = sessionLevelInfo(s);
-    return `<div class="session-row">
-      <div class="sr-cell sr-date">${formatSessionDate(s.date)}</div>
-      <div class="sr-line2">
-        ${levelCellHtml(info)}
-        <div class="sr-cell sr-qs">${s.questions || '—'} Qs</div>
-        <div class="sr-cell sr-avg">${s.avgTime.toFixed(1)}s avg</div>
-        <div class="sr-cell sr-acc">${s.accuracy}% acc</div>
-      </div>
-      ${levelPopoverHtml(info)}
-    </div>`;
-  }).join('');
-}
-
-function renderSkillDetail(key){
-  const skillSessions = sessions.filter(s => s.skill === key);
-  const icon = document.getElementById('skdPageTitleIcon');
-  icon.textContent = SKILL_ICON[key];
-  icon.style.background = 'var(--sk-' + key + '-soft)';
-  icon.style.color = 'var(--sk-' + key + ')';
-  document.getElementById('skdPageTitleText').textContent = skillDisplayLabels[key];
-  document.getElementById('skdTrendDesc').textContent = 'Average answer time per session — ' + skillDisplayLabels[key] + ' only';
-  document.getElementById('skdSectionLabel').textContent = 'All sessions — ' + skillDisplayLabels[key];
-
-  renderTrendCard({
-    mount: document.getElementById('skdTrend'),
-    title: document.getElementById('skdTrendTitle'),
-    avg: document.getElementById('skdCurrentAvg'),
-    acc: document.getElementById('skdCurrentAcc'),
-    growth: document.getElementById('skdGrowth'),
-    growthLbl: document.getElementById('skdGrowthLbl')
-  }, sessionsToPoints(skillSessions));
-  renderSkillDetailSessions(key, skillSessions);
-}
-
-function openSkillDetail(key){
-  if(!skillDisplayLabels[key]) return;
-  currentSkillDetailKey = key;
-  renderSkillDetail(key);
-  showView('historySkill');
-  document.getElementById('view-history-skill').scrollTop = 0;
-}
-wireLevelPopovers(document.getElementById('skdSessionsList'));
-document.getElementById('btnSkdBack').addEventListener('click', () => showView('history'));
-
-// ---------- Full History (paginated) ----------
-const FULL_HISTORY_PAGE_SIZE = 15;
-let fullHistoryPage = 1;
-
-function pageNumbersToShow(page, total){
-  const pages = [];
-  const add = (p) => { if(p >= 1 && p <= total && pages.indexOf(p) === -1) pages.push(p); };
-  add(1); add(total); add(page - 1); add(page); add(page + 1);
-  pages.sort((a,b) => a - b);
-  const out = [];
-  pages.forEach((p, i) => {
-    if(i > 0 && p - pages[i-1] > 1) out.push('...');
-    out.push(p);
-  });
-  return out;
-}
-
-function renderFullPagination(totalPages){
-  const el = document.getElementById('fullPagination');
-  if(totalPages <= 1){ el.innerHTML = ''; return; }
-  const chevL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
-  const chevR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
-  let html = `<button class="page-btn page-nav-btn" id="fullBtnPrev"${fullHistoryPage === 1 ? ' disabled' : ''}>${chevL} Prev</button>`;
-  pageNumbersToShow(fullHistoryPage, totalPages).forEach(p => {
-    if(p === '...') html += '<span class="page-ellipsis">…</span>';
-    else html += `<button class="page-btn${p === fullHistoryPage ? ' active' : ''}" data-page="${p}">${p}</button>`;
-  });
-  html += `<button class="page-btn page-nav-btn" id="fullBtnNext"${fullHistoryPage === totalPages ? ' disabled' : ''}>Next ${chevR}</button>`;
-  el.innerHTML = html;
-}
-
-function renderFullHistory(){
-  const list = document.getElementById('fullSessionsList');
-  const countNote = document.getElementById('fullCountNote');
-  const emptyState = document.getElementById('fullEmptyState');
-  const pagination = document.getElementById('fullPagination');
-
-  if(sessions.length === 0){
-    list.style.display = 'none';
-    countNote.style.display = 'none';
-    pagination.innerHTML = '';
-    emptyState.style.display = 'block';
-    return;
-  }
-  list.style.display = 'flex';
-  countNote.style.display = 'block';
-  emptyState.style.display = 'none';
-
-  const all = [...sessions].reverse(); // newest first
-  const totalPages = Math.max(1, Math.ceil(all.length / FULL_HISTORY_PAGE_SIZE));
-  fullHistoryPage = Math.min(Math.max(1, fullHistoryPage), totalPages);
-  countNote.innerHTML = `<b>${all.length}</b> session${all.length === 1 ? '' : 's'} total`;
-
-  const start = (fullHistoryPage - 1) * FULL_HISTORY_PAGE_SIZE;
-  list.innerHTML = all.slice(start, start + FULL_HISTORY_PAGE_SIZE).map(sessionRowHtml).join('');
-  renderFullPagination(totalPages);
-}
-
-function openFullHistory(){
-  fullHistoryPage = 1;
-  renderFullHistory();
-  showView('historyFull');
-  document.getElementById('view-history-full').scrollTop = 0;
-}
-
-document.getElementById('fullPagination').addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if(!btn || btn.disabled) return;
-  if(btn.id === 'fullBtnPrev') fullHistoryPage--;
-  else if(btn.id === 'fullBtnNext') fullHistoryPage++;
-  else if(btn.dataset.page) fullHistoryPage = parseInt(btn.dataset.page, 10);
-  else return;
-  renderFullHistory();
-  document.getElementById('view-history-full').scrollTop = 0;
-});
-wireLevelPopovers(document.getElementById('fullSessionsList'));
-document.getElementById('btnFullBack').addEventListener('click', () => showView('history'));
-document.getElementById('btnSeeFullHistory').addEventListener('click', openFullHistory);
-
-// ---------- topbar: back + export/import (with hover/touch tooltips) ----------
-document.getElementById('btnHistoryBack').addEventListener('click', () => showView('home'));
-
+// ---------- icon-button tooltips (touch: long-press shows it; mouse: hover) ----------
 function wireTooltipBtn(btnId, tipId){
   const btn = document.getElementById(btnId), tip = document.getElementById(tipId);
+  if(!btn || !tip) return;
   let timer = null;
   btn.addEventListener('touchstart', () => { timer = setTimeout(() => tip.classList.add('show'), 350); }, {passive:true});
   btn.addEventListener('touchend', () => { clearTimeout(timer); setTimeout(() => tip.classList.remove('show'), 1200); });
   btn.addEventListener('mouseenter', () => tip.classList.add('show'));
   btn.addEventListener('mouseleave', () => tip.classList.remove('show'));
 }
+
+// ---------- shared trend card (Overview + Skill Detail) ----------
+// els: { mount, title, curAvg, curAcc, growth, growthLbl }
+function renderTrendCard(els, points){
+  const result = TrendChart.mount(els.mount, points);
+  const pts = result ? result.pts : [];
+
+  els.title.textContent = points.length === 0 ? 'Getting started' : 'Your progress';
+
+  if(pts.length === 0){
+    els.curAvg.textContent = '—';
+    els.curAcc.textContent = '—';
+    els.growth.textContent = '—';
+    els.growth.className = 'num';
+    els.growthLbl.textContent = '';
+    return;
+  }
+
+  const first = pts[0], last = pts[pts.length - 1];
+  els.curAvg.textContent = last.val.toFixed(1) + 's';
+  els.curAcc.textContent = Math.round(last.acc) + '%';
+
+  if(pts.length < 2 || first.val <= 0){
+    els.growth.textContent = '—';
+    els.growth.className = 'num';
+    els.growthLbl.textContent = 'play on another day to see growth';
+    return;
+  }
+  const pct = Math.round(((first.val - last.val) / first.val) * 100);
+  els.growth.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+  els.growth.className = 'num ' + (pct >= 0 ? 'pos' : 'neg');
+  els.growthLbl.textContent = (pct >= 0 ? 'faster' : 'slower') + ' vs ' + first.label;
+  els.title.textContent = pct >= 3 ? 'Getting faster' : (pct <= -3 ? 'Slowing down' : 'Holding steady');
+}
+
+// ============================================================
+// OVERVIEW
+// ============================================================
+const histEls = {
+  mount: document.getElementById('histTrend'),
+  title: document.getElementById('histTrendTitle'),
+  curAvg: document.getElementById('histCurrentAvg'),
+  curAcc: document.getElementById('histCurrentAcc'),
+  growth: document.getElementById('histGrowth'),
+  growthLbl: document.getElementById('histGrowthLbl')
+};
+const sessionsListEl = document.getElementById('sessionsList');
+const histSkillGridEl = document.getElementById('histSkillGrid');
+const CHEVRON_SVG = '<svg class="sk-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
+function renderHistSkillGrid(){
+  histSkillGridEl.innerHTML = '';
+  SKILL_ORDER.forEach(key => {
+    const list = sessions.filter(s => s.skill === key);
+    const has = list.length > 0;
+    const avg = has ? list.reduce((a, s) => a + s.avgTime, 0) / list.length : null;
+    const acc = has ? Math.round(list.reduce((a, s) => a + s.accuracy, 0) / list.length) : null;
+    const card = document.createElement('button');
+    card.className = 'skill-card ' + SKILL_CLASS[key];
+    card.dataset.skill = key;
+    card.innerHTML =
+      '<div class="sk-top"><div class="sk-top-left"><div class="sk-icon">' + SKILL_ICON[key] + '</div>'
+      + '<div class="sk-name">' + skillDisplayLabels[key] + '</div></div>' + CHEVRON_SVG + '</div>'
+      + '<div class="sk-nums">'
+      +   '<div class="sk-stat"><div class="num">' + (has ? avg.toFixed(1) + 's' : '—') + '</div><div class="lbl">Avg time</div></div>'
+      +   '<div class="sk-stat"><div class="num">' + (has ? acc + '%' : '—') + '</div><div class="lbl">Accuracy</div></div>'
+      + '</div>';
+    histSkillGridEl.appendChild(card);
+  });
+}
+
+function renderRecentSessions(){
+  const seeAll = document.getElementById('btnSeeFullHistory');
+  if(sessions.length === 0){
+    sessionsListEl.innerHTML = '<div class="empty-list-note">No rounds played yet — finish a round to see it here.</div>';
+    seeAll.style.display = 'none';
+    return;
+  }
+  seeAll.style.display = 'block';
+  sessionsListEl.innerHTML = sessions.slice(-10).reverse().map(s => sessionRowHtml(s, true)).join('');
+}
+
+function renderHistory(){
+  closeLevelPop();
+  renderTrendCard(histEls, trendPointsFor(sessions));
+  renderHistSkillGrid();
+  renderRecentSessions();
+}
+
+wireLevelPopovers(sessionsListEl);
+histSkillGridEl.addEventListener('click', (e) => {
+  const card = e.target.closest('.skill-card');
+  if(card) openSkillDetail(card.dataset.skill);
+});
+document.getElementById('btnSeeFullHistory').addEventListener('click', () => openFullHistory());
 wireTooltipBtn('btnExportHistory', 'tipExportHistory');
 wireTooltipBtn('btnImportHistory', 'tipImportHistory');
+
+// ============================================================
+// SKILL DETAIL
+// ============================================================
+const skdEls = {
+  mount: document.getElementById('skdTrend'),
+  title: document.getElementById('skdTrendTitle'),
+  curAvg: document.getElementById('skdCurrentAvg'),
+  curAcc: document.getElementById('skdCurrentAcc'),
+  growth: document.getElementById('skdGrowth'),
+  growthLbl: document.getElementById('skdGrowthLbl')
+};
+const skdListEl = document.getElementById('skdSessionsList');
+const skdEmptyNote = document.getElementById('skdEmptyNote');
+let skdCurrentKey = null;
+
+function renderSkillDetail(){
+  const key = skdCurrentKey;
+  if(!key) return;
+  closeLevelPop();
+  const label = skillDisplayLabels[key];
+  const list = sessions.filter(s => s.skill === key);
+
+  const icon = document.getElementById('skdPageTitleIcon');
+  icon.textContent = SKILL_ICON[key];
+  icon.style.background = 'var(--sk-' + key + '-soft)';
+  icon.style.color = 'var(--sk-' + key + ')';
+  document.getElementById('skdPageTitleText').textContent = label;
+  document.getElementById('skdTrendDesc').textContent = 'Average answer time per session, ' + label;
+  document.getElementById('skdSectionLabel').textContent = 'All sessions — ' + label;
+
+  renderTrendCard(skdEls, trendPointsFor(list));
+
+  if(list.length === 0){
+    skdListEl.innerHTML = '';
+    skdEmptyNote.style.display = 'block';
+    skdEmptyNote.textContent = 'No ' + label + ' rounds yet — play one to see it here.';
+  } else {
+    skdEmptyNote.style.display = 'none';
+    skdListEl.innerHTML = list.slice().reverse().map(s => sessionRowHtml(s, false)).join('');
+  }
+}
+
+function openSkillDetail(key){
+  skdCurrentKey = key;
+  renderSkillDetail();
+  showView('historySkill');
+}
+
+wireLevelPopovers(skdListEl);
 wireTooltipBtn('btnSkdExport', 'tipSkdExport');
 wireTooltipBtn('btnSkdImport', 'tipSkdImport');
 
-// Export/import always covers ALL sessions (not just the skill being viewed).
+// ============================================================
+// FULL HISTORY (15 per page)
+// ============================================================
+const fullListEl = document.getElementById('fullSessionsList');
+const fullPaginationEl = document.getElementById('fullPagination');
+const fullCountNoteEl = document.getElementById('fullCountNote');
+const fullEmptyEl = document.getElementById('fullEmptyState');
+let fullPage = 1;
+
+function renderFullHistory(){
+  closeLevelPop();
+  const total = sessions.length;
+  if(total === 0){
+    fullListEl.innerHTML = '';
+    fullPaginationEl.innerHTML = '';
+    fullCountNoteEl.textContent = '';
+    fullEmptyEl.style.display = 'block';
+    return;
+  }
+  fullEmptyEl.style.display = 'none';
+  const pages = Math.max(1, Math.ceil(total / FULL_PAGE_SIZE));
+  fullPage = Math.min(Math.max(1, fullPage), pages);
+  const slice = sessions.slice().reverse().slice((fullPage - 1) * FULL_PAGE_SIZE, fullPage * FULL_PAGE_SIZE);
+  fullCountNoteEl.textContent = total + (total === 1 ? ' session total' : ' sessions total');
+  fullListEl.innerHTML = slice.map(s => sessionRowHtml(s, true)).join('');
+
+  const nums = [];
+  for(let p = 1; p <= pages; p++){
+    if(p === 1 || p === pages || Math.abs(p - fullPage) <= 1) nums.push(p);
+    else if(nums[nums.length - 1] !== '…') nums.push('…');
+  }
+  const chev = (d) => '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
+  let html = '<button class="page-btn page-nav-btn" data-page="' + (fullPage - 1) + '"' + (fullPage === 1 ? ' disabled' : '') + '>' + chev('M15 18l-6-6 6-6') + 'Prev</button>';
+  nums.forEach(n => {
+    html += n === '…'
+      ? '<span class="page-ellipsis">…</span>'
+      : '<button class="page-btn' + (n === fullPage ? ' active' : '') + '" data-page="' + n + '">' + n + '</button>';
+  });
+  html += '<button class="page-btn page-nav-btn" data-page="' + (fullPage + 1) + '"' + (fullPage === pages ? ' disabled' : '') + '>Next' + chev('M9 18l6-6-6-6') + '</button>';
+  fullPaginationEl.innerHTML = html;
+}
+
+function openFullHistory(){
+  fullPage = 1;
+  renderFullHistory();
+  showView('historyFull');
+}
+
+wireLevelPopovers(fullListEl);
+fullPaginationEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.page-btn');
+  if(!btn || btn.disabled || btn.classList.contains('active')) return;
+  fullPage = parseInt(btn.dataset.page, 10);
+  renderFullHistory();
+  const v = document.getElementById('view-history-full');
+  if(v) v.scrollTop = 0;
+});
+
+// ============================================================
+// EXPORT / IMPORT (always ALL sessions, shared by Overview and Skill Detail buttons)
+// ============================================================
 function exportHistory(){
-  const blob = new Blob([JSON.stringify(sessions, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(sessions, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const d = new Date();
   a.href = url;
-  a.download = `numbers-history-${d.toISOString().slice(0,10)}.json`;
+  a.download = 'numbers-history-' + new Date().toISOString().slice(0, 10) + '.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -405,13 +363,14 @@ importFileInput.addEventListener('change', (e) => {
       const imported = JSON.parse(reader.result);
       if(!Array.isArray(imported)) throw new Error('bad format');
       const existingDates = new Set(sessions.map(s => s.date));
-      const merged = sessions.concat(imported.filter(s => !existingDates.has(s.date)));
-      merged.sort((a,b) => a.date - b.date);
+      const merged = sessions.concat(imported.filter(s => s && typeof s.date === 'number' && !existingDates.has(s.date)));
+      merged.sort((a, b) => a.date - b.date);
       sessions = merged;
       saveSessions(sessions);
       renderHistory();
-      // Import can be triggered from Skill Detail too — refresh it if it's the visible screen.
-      if(views.historySkill.classList.contains('active') && currentSkillDetailKey) renderSkillDetail(currentSkillDetailKey);
+      if(document.getElementById('view-history-skill').classList.contains('active')) renderSkillDetail();
+      if(document.getElementById('view-history-full').classList.contains('active')) renderFullHistory();
+      if(typeof renderHomeDashboard === 'function') renderHomeDashboard();
     }catch(err){
       alert('Could not read that file — make sure it\'s a history export from this app.');
     }
@@ -419,10 +378,3 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
   importFileInput.value = '';
 });
-
-// ---------- entry point (called by ui.js's btnHistory / historyCard handlers) ----------
-function renderHistory(){
-  renderHistTrend();
-  renderHistSkillGrid();
-  renderRecentSessions();
-}

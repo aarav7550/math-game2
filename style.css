@@ -46,7 +46,7 @@
 
   /* ---------- HOME view ---------- */
   #view-home{ flex-direction:column; overflow-y:auto; }
-  #view-home .wrap{ max-width:900px; margin:0 auto; width:100%; padding:24px 18px 60px; }
+  #view-home .wrap{ max-width:936px; margin:0 auto; width:100%; padding:24px 18px 60px; }
 
   .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
   .brand{ font-family:'Sora',sans-serif; font-weight:700; font-size:17px; }
@@ -674,7 +674,7 @@
 
   /* ---------- HISTORY view (Step 4a: Overview only) ---------- */
   #view-history{ flex-direction:column; overflow-y:auto; }
-  #view-history .wrap{ max-width:1100px; margin:0 auto; width:100%; padding:24px 18px 60px; }
+  #view-history .wrap{ max-width:936px; margin:0 auto; width:100%; padding:24px 18px 60px; }
 
   #view-history .topbar{ position:relative; min-height:36px; }
   .page-title{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:'Sora',sans-serif; font-weight:700; font-size:17px; white-space:nowrap; }
@@ -721,7 +721,6 @@
   .trend-top .tc-tag{ font-size:11px; color:var(--feature-accent-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
   .trend-top .tc-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:19px; margin:5px 0 3px; color:#fff; }
   .trend-top .tc-desc{ font-size:12.5px; color:var(--feature-accent-dim); line-height:1.45; }
-  .trend-top .tc-legend{ margin-top:6px; }
   .hist-chart{ position:relative; }
 
   .trend-bottom{
@@ -832,7 +831,7 @@
   }
 
   /* ---------- HISTORY: parity with the History mockup (sizes, chart, skill cards) ---------- */
-  #view-history .wrap{ max-width:900px; }
+  #view-history .wrap{ max-width:936px; }
   #view-history .topbar{ margin-bottom:22px; }
   #view-history .topbar-right, #view-history-skill .topbar-right{ gap:8px; z-index:1; width:auto; }
   #view-history .back-link, #view-history-skill .back-link, #view-history-full .back-link{ z-index:1; }
@@ -842,9 +841,6 @@
   /* trend card + chart (History-style: legend sits in the card header, info box floats above the hovered point) */
   .trend-card{ margin-bottom:0; }
   .trend-bottom{ border-top-color:rgba(255,255,255,0.1); }
-  .trend-top .tc-legend{ margin-top:6px; }
-  .hist-chart .trend-chart-wrap{ margin-top:18px; }
-  .hist-chart .chart-axis-label{ font-size:14px; }
 
   /* by-skill cards on History: chevron layout, roomier than Home's */
   #view-history .skill-grid{ grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px; margin-bottom:28px; }
@@ -853,9 +849,6 @@
 
   @media (min-width:861px){
     .trend-card{ padding:18px; }
-    .hist-chart .trend-chart-wrap{ width:auto; margin:0 -8px; }
-    .hist-chart .trend-svg{ width:100%; height:230px; }
-    .hist-chart .chart-axis-label{ font-size:14.5px; }
     .trend-top .tc-tag{ font-size:11.5px; }
     .trend-stat .num{ font-size:19px; }
     .trend-stat .lbl{ font-size:10px; }
@@ -869,8 +862,6 @@
     #view-history-skill .topbar, #view-history-full .topbar{ padding-top:0; }
     .history-col-side{ margin-top:0; }
     .trend-top .tc-desc{ font-size:12.5px; }
-    .hist-chart .trend-chart-wrap{ margin:10px 0 0; width:100%; }
-    .hist-chart .chart-axis-label{ font-size:17px; }
     .trend-stat .lbl{ font-size:9.5px; }
     #view-history .section-label{ font-size:15px; }
     #view-history .skill-grid{ grid-template-columns:1fr 1fr; gap:9px; margin-bottom:0; }
@@ -884,8 +875,8 @@
 
   /* ---------- HISTORY: Skill Detail + Full History (Step 4b) ---------- */
   #view-history-skill, #view-history-full{ flex-direction:column; overflow-y:auto; }
-  #view-history-skill .wrap{ max-width:900px; margin:0 auto; width:100%; padding:24px 18px 60px; }
-  #view-history-full .wrap{ max-width:760px; margin:0 auto; width:100%; padding:24px 18px 60px; }
+  #view-history-skill .wrap{ max-width:936px; margin:0 auto; width:100%; padding:24px 18px 60px; }
+  #view-history-full .wrap{ max-width:936px; margin:0 auto; width:100%; padding:24px 18px 60px; }
   #view-history-skill .topbar, #view-history-full .topbar{ position:relative; min-height:36px; margin-bottom:22px; }
 
   .page-title .pt-icon{
@@ -1034,7 +1025,6 @@
   @media (max-width: 480px){
     .mode-grid{ grid-template-columns: 1fr 1fr; }
     .results-grid{ grid-template-columns: 1fr 1fr 1fr; }
-    .topbar{ padding:12px 16px; }
   }
 
   @media (prefers-reduced-motion: reduce){

@@ -163,7 +163,13 @@ function renderDashboardStats(){
     overallAccEl.textContent = overallAcc + '%';
   }
   const trendPoints = sessions.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
-  TrendChart.mount(document.getElementById('homeTrend'), trendPoints);
+  const homeChart = TrendChart.mount(document.getElementById('homeTrend'), trendPoints);
+  // Title follows the trend, same wording/threshold as the History page's card.
+  if(homeChart && homeChart.pts.length >= 2 && homeChart.pts[0].val > 0){
+    const p0 = homeChart.pts[0], p1 = homeChart.pts[homeChart.pts.length - 1];
+    const pct = Math.round(((p0.val - p1.val) / p0.val) * 100);
+    hcTitle.textContent = pct >= 3 ? 'Getting faster' : (pct <= -3 ? 'Slowing down' : 'Holding steady');
+  }
 
   // Feeling brave strip stats — best avg + overall accuracy across mixed-mode rounds only
   const mixedSessions = sessions.filter(s => s.skill === 'mixed');
