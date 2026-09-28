@@ -252,36 +252,47 @@
     </div>
   </div>
 
-  <!-- RESULTS -->
+  <!-- RESULTS (ported from finalized mockup; ids preserved for game.js / ui.js) -->
   <div class="view" id="view-results">
-    <div class="results-scroll">
-      <div class="results-title" id="resultsTitle">Round complete</div>
-      <div class="config-note" id="resultsConfigNote"></div>
-      <div class="results-grid">
-        <div class="stat-box good"><div class="num" id="resAcc">0%</div><div class="lbl">accuracy</div></div>
-        <div class="stat-box"><div class="num" id="resAvg">0.0s</div><div class="lbl">avg time</div></div>
-        <div class="stat-box"><div class="num" id="resBest">0.0s</div><div class="lbl">best time</div></div>
+    <div class="page">
+      <div class="page-head">
+        <button class="back-link" id="btnResultsBack">
+          <svg viewBox="7.8 4.8 8.4 14.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </button>
+        <div class="page-head-spacer"></div>
       </div>
 
-      <div class="breakdown-section">
-        <div class="breakdown-title">Slowest questions</div>
-        <div id="slowestList" class="detail-list"></div>
-      </div>
+      <div class="card" id="card">
+        <div class="title" id="resultsTitle">Round complete</div>
+        <div class="config-note" id="resultsConfigNote"></div>
 
-      <div class="breakdown-section" id="perSkillSection" style="display:none;">
-        <div class="breakdown-title">By skill</div>
-        <div id="perSkillList" class="detail-list"></div>
-      </div>
+        <div class="stats-grid">
+          <div class="stat-box s-acc"><div class="num" id="resAcc">0%</div><div class="lbl">accuracy</div></div>
+          <div class="stat-box s-avg"><div class="num" id="resAvg">0.0s</div><div class="lbl">avg time</div></div>
+          <div class="stat-box s-best"><div class="num" id="resBest">0.0s</div><div class="lbl">best time</div></div>
+        </div>
 
-      <div class="breakdown-section" id="missedSection" style="display:none;">
-        <div class="breakdown-title">Missed</div>
-        <div id="missedList" class="detail-list"></div>
-      </div>
+        <div class="section">
+          <div class="section-title">Slowest questions</div>
+          <div id="slowestList" class="detail-list"></div>
+        </div>
 
-      <div class="results-actions">
-        <button class="btn-ghost" id="btnHome">Home</button>
-        <button class="btn-ghost" id="btnShareSet">Share this set</button>
-        <button class="btn-primary" id="btnAgain">Go again</button>
+        <div class="section" id="perSkillSection" style="display:none;">
+          <div class="section-title">By skill</div>
+          <div id="perSkillList" class="detail-list"></div>
+        </div>
+
+        <div class="section" id="missedSection" style="display:none;">
+          <div class="section-title">Missed</div>
+          <div id="missedList" class="detail-list"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-ghost" id="btnHome">Home</button>
+          <button class="btn btn-ghost" id="btnShareSet">Share this set</button>
+          <button class="btn btn-primary" id="btnAgain">Go again</button>
+        </div>
       </div>
     </div>
   </div>

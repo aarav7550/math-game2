@@ -265,50 +265,38 @@ function finishRound(){
 
 function renderResultsBreakdown(){
   const records = state.records;
+  const isMixed = state.skill === 'mixed';
+  const tag = r => isMixed ? `<span class="dr-skilltag">${skillDisplayLabels[r.skillKey]}</span>` : '';
 
-  // Slowest questions — top 5 by time, each row shows time + (if wrong) your answer vs correct
+  // Slowest questions — top 3 by time
   const slowestList = document.getElementById('slowestList');
   slowestList.innerHTML = '';
-  const bySlow = [...records].sort((a,b) => b.timeMs - a.timeMs).slice(0, 5);
-  bySlow.forEach(r => {
+  [...records].sort((a,b) => b.timeMs - a.timeMs).slice(0, 3).forEach(r => {
     const row = document.createElement('div');
-    row.className = 'detail-row' + (r.correct ? '' : ' miss');
-    const givenStr = r.given === null ? 'no answer' : String(r.given);
-    const answerPart = r.correct
-      ? ''
-      : `<span class="dr-wrong">${givenStr}</span> <span class="dr-correct">→ ${r.answer}</span>`;
+    row.className = 'detail-row';
     row.innerHTML = `
-      <div class="dr-left">
-        <span class="dr-problem">${r.text}</span>
-        ${state.skill === 'mixed' ? `<span class="dr-skilltag">${skillDisplayLabels[r.skillKey]}</span>` : ''}
-      </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        ${answerPart}
-        <span class="dr-time" style="color:${r.correct ? 'var(--text)' : 'var(--bad)'}">${(r.timeMs/1000).toFixed(1)}s</span>
-      </div>
+      <span class="dr-problem">${r.text}${tag(r)}</span>
+      <span class="dr-time">${(r.timeMs/1000).toFixed(1)}s</span>
     `;
     slowestList.appendChild(row);
   });
 
-  // Per-skill breakdown (only relevant in mixed mode)
+  // By skill (mixed mode only) — avg time + accuracy %
   const perSkillSection = document.getElementById('perSkillSection');
   const perSkillList = document.getElementById('perSkillList');
   perSkillList.innerHTML = '';
-  if(state.skill === 'mixed'){
+  if(isMixed){
     perSkillSection.style.display = 'block';
     SKILL_ORDER.forEach(key => {
       const subset = records.filter(r => r.skillKey === key);
       if(subset.length === 0) return;
-      const correctN = subset.filter(r => r.correct).length;
+      const acc = Math.round(subset.filter(r => r.correct).length / subset.length * 100);
       const avg = subset.reduce((a,r)=>a+r.timeMs,0)/subset.length/1000;
       const row = document.createElement('div');
-      row.className = 'skill-stat-row';
+      row.className = 'skill-row';
       row.innerHTML = `
-        <span class="ssr-name">${skillDisplayLabels[key]}</span>
-        <span class="ssr-nums">
-          <span><b>${correctN}/${subset.length}</b> correct</span>
-          <span><b>${avg.toFixed(1)}s</b> avg</span>
-        </span>
+        <span class="name">${skillDisplayLabels[key]}</span>
+        <span class="nums"><span>avg <b>${avg.toFixed(1)}s</b></span><span>acc <b>${acc}%</b></span></span>
       `;
       perSkillList.appendChild(row);
     });
@@ -316,7 +304,7 @@ function renderResultsBreakdown(){
     perSkillSection.style.display = 'none';
   }
 
-  // Missed questions — every wrong/timed-out answer, in order played
+  // Missed — every wrong/timed-out answer, in order played
   const missedSection = document.getElementById('missedSection');
   const missedList = document.getElementById('missedList');
   missedList.innerHTML = '';
@@ -325,16 +313,11 @@ function renderResultsBreakdown(){
     missedSection.style.display = 'block';
     missed.forEach(r => {
       const row = document.createElement('div');
-      row.className = 'detail-row miss';
-      const givenStr = r.given === null ? 'no answer' : String(r.given);
+      row.className = 'miss-row';
+      const youStr = r.given === null ? 'no answer' : String(r.given);
       row.innerHTML = `
-        <div class="dr-left">
-          <span class="dr-problem">${r.text}</span>
-          ${state.skill === 'mixed' ? `<span class="dr-skilltag">${skillDisplayLabels[r.skillKey]}</span>` : ''}
-        </div>
-        <span>
-          <span class="dr-wrong">${givenStr}</span> <span class="dr-correct">→ ${r.answer}</span>
-        </span>
+        <span class="dr-problem">${r.text}${tag(r)}</span>
+        <span class="miss-nums"><span class="you">you: ${youStr}</span><span class="correct">right: ${r.answer}</span></span>
       `;
       missedList.appendChild(row);
     });

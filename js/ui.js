@@ -620,6 +620,7 @@ function matchingDifficulty(key){
 }
 
 document.getElementById('btnHome').addEventListener('click', () => showView('home'));
+document.getElementById('btnResultsBack').addEventListener('click', () => showView('home'));
 document.getElementById('btnShareSet').addEventListener('click', () => {
   // Reuses the exact seed from the round just played, so a "hard set" reproduces
   // literally — not just the same config with a fresh set of numbers.
