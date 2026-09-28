@@ -621,6 +621,21 @@ function matchingDifficulty(key){
 
 document.getElementById('btnHome').addEventListener('click', () => showView('home'));
 document.getElementById('btnResultsBack').addEventListener('click', () => showView('home'));
+
+// Go again: replay the same skill/config/question count with fresh questions.
+// state.skill / totalQuestions / practiceMode still hold the round just finished.
+document.getElementById('btnAgain').addEventListener('click', () => {
+  if(state.fromChallenge && activeChallengeIncluded){
+    // Challenge round: re-run its skills + settings, but with a new random seed
+    pendingChallenge = {
+      included: activeChallengeIncluded,
+      cfg: activeChallengeCfg,
+      n: state.totalQuestions,
+      seed: randomSeed()
+    };
+  }
+  startRound();
+});
 document.getElementById('btnShareSet').addEventListener('click', () => {
   // Reuses the exact seed from the round just played, so a "hard set" reproduces
   // literally — not just the same config with a fresh set of numbers.

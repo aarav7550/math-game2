@@ -613,7 +613,10 @@
   #view-results{
     --r-stat-bg:#F6F9FA; --r-border:#E1EAEC; --r-text:#14171C; --r-dim:#6B7280;
     --r-bad:#C6544A; --r-bad-bg:#FBF0EF; --r-bad-border:#F3D9D6;
-    --r-accent:#F4B740; --r-accent-text:#14171C; --r-accent-tint:#FDF6E4; --r-accent-tint-border:#F4E1AE;
+    /* --r-accent is set from JS (game.js finishRound) to the played skill's colour; tints derive from it */
+    --r-accent:#007EA7; --r-accent-text:#FFFFFF;
+    --r-accent-tint:color-mix(in srgb, var(--r-accent) 12%, #fff);
+    --r-accent-tint-border:color-mix(in srgb, var(--r-accent) 32%, #fff);
     flex-direction:column; align-items:center; padding:24px; overflow-y:auto;
     background:#F3FAFB; color:var(--r-text);
   }

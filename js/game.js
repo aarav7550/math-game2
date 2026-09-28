@@ -232,6 +232,10 @@ function finishRound(){
   document.getElementById('resultsTitle').textContent =
     accuracy === 100 ? 'Flawless round' : (accuracy >= 80 ? 'Solid round' : 'Round complete');
 
+  // Results page picks up the played skill's accent colour (Mixed uses the neutral primary blue)
+  const resAccent = state.skill === 'mixed' ? '#007EA7' : (SKILL_COLOR[state.skill] || '#007EA7');
+  document.getElementById('view-results').style.setProperty('--r-accent', resAccent);
+
   renderResultsBreakdown();
   renderResultsConfigNote();
 
