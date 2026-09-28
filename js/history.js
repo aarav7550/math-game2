@@ -53,7 +53,7 @@ function levelPopoverHtml(info){
 // ---------- trend card (shared by Overview + Skill Detail) ----------
 // points: [{ ts, val, acc }] one per session; TrendChart itself averages them per day.
 function renderTrendCard(els, points){
-  const mounted = TrendChart.mount(els.mount, points);
+  const mounted = TrendChart.mount(els.mount, points, { legend:false, tooltip:'point' });
 
   if(!mounted || mounted.pts.length === 0){
     els.title.textContent = 'Getting started';

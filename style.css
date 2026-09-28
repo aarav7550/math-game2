@@ -94,7 +94,7 @@
   .history-card .hc-top .hc-tag{ font-size:11px; color:var(--feature-accent-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
   .history-card .hc-top .hc-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:17px; margin:5px 0 3px; color:#fff; }
   .history-card .hc-top .hc-desc{ font-size:12px; color:var(--feature-accent-dim); line-height:1.45; }
-  .history-card .hc-chart{ margin:0 0 14px; min-height:60px; }
+  .history-card .hc-chart{ margin:0 0 14px; }
   .history-card .hc-bottom{ display:flex; justify-content:space-between; align-items:flex-end; }
   .history-card .hc-stat .num{ font-family:'Sora',sans-serif; font-weight:800; font-size:20px; color:var(--feature-accent); }
   .history-card .hc-stat .lbl{ font-size:10px; color:var(--feature-accent-dim); }
@@ -159,7 +159,8 @@
   .skill-card{
     background:var(--card); border:1px solid var(--line); border-radius:16px;
     padding:18px; cursor:pointer; transition:box-shadow .12s ease, border-color .12s ease, transform .1s ease;
-    display:flex; flex-direction:column; gap:10px; text-align:left; font-family:inherit;
+    display:flex; flex-direction:column; gap:10px; text-align:left;
+    font:inherit; color:var(--ink); width:100%; line-height:normal; -webkit-appearance:none; appearance:none;
   }
   .skill-card:hover{ border-color:var(--accent-c); box-shadow:0 6px 18px rgba(0,0,0,0.08); transform:translateY(-1px); }
   .sk-top{ display:flex; align-items:center; gap:12px; }
@@ -259,38 +260,51 @@
   /* ---- dash-stats-col: right column wrapper (desktop greeting + stat grid) ---- */
   .dash-stats-col{ display:flex; flex-direction:column; min-width:0; }
 
-  /* ---- trend chart (TrendChart.mount target, used inside .history-card) ---- */
+  /* ---- SHARED TREND CHART (TrendChart.mount) — copied 1:1 from the Home mockup ---- */
   .hc-chart{ position:relative; }
-  .trend-chart-wrap{ position:relative; width:100%; }
-  .trend-svg{ display:block; width:100%; height:auto; overflow:visible; }
-  .tc-head{ display:flex; justify-content:flex-end; margin-bottom:6px; }
-  .tc-legend{ display:flex; gap:14px; }
-  .leg-item{
-    display:flex; align-items:center; gap:6px; font-size:10.5px;
-    color:var(--feature-accent-dim); font-weight:600;
-  }
-  .leg-dash{ width:14px; height:3px; border-radius:2px; display:inline-block; }
-  .leg-dash.leg-time{ background:#5FC2FC; }
-  .leg-dash.leg-acc{ background:#FF6B6B; }
-  .tc-empty{
-    color:var(--feature-accent-dim); font-size:12.5px; text-align:center;
-    padding:30px 10px; min-height:60px; display:flex; align-items:center; justify-content:center;
-  }
-  .chart-axis-label{ font-size:9.5px; }
-  .chart-tooltip{
-    position:absolute; top:-6px; transform:translate(-50%,-100%);
-    background:var(--navy-1); color:#fff; border-radius:8px; padding:6px 10px;
-    font-size:11px; white-space:nowrap; pointer-events:none;
-    opacity:0; visibility:hidden; transition:opacity .1s ease; z-index:5;
-    display:flex; flex-direction:column; gap:1px; text-align:center;
-  }
-  .chart-tooltip.show{ opacity:1; visibility:visible; }
-  .chart-tooltip .ct-date{ font-weight:700; font-size:10.5px; }
-  .chart-tooltip .ct-val{ color:#8FA3BD; font-size:10px; }
-  .chart-crosshair{ stroke:rgba(255,255,255,0.25); stroke-width:1; opacity:0; }
+  .trend-chart-wrap{ margin-top:12px; position:relative; width:100%; }
+  /* strip above the plot: shows the legend, and the hover info box replaces it while hovering */
+  .tc-head{ position:relative; height:34px; display:flex; align-items:center; }
+  .tc-legend{ display:flex; align-items:center; gap:14px; font-size:11px; color:var(--feature-accent-dim); }
+  .leg-item{ display:flex; align-items:center; gap:6px; }
+  .leg-dash{ width:16px; height:0; border-top:2px solid; display:inline-block; }
+  .leg-dash.leg-time{ border-color:#5FC2FC; }
+  .leg-dash.leg-acc{ border-color:#FF6B6B; }
+
+  .trend-svg{ display:block; width:100%; height:auto; overflow:visible; touch-action:pan-y; cursor:crosshair; }
+  .chart-axis-label{ font-size:16px; }
+  .chart-crosshair{ stroke:rgba(255,255,255,0.28); stroke-width:1; stroke-dasharray:3,3; opacity:0; pointer-events:none; }
   .chart-crosshair.show{ opacity:1; }
-  .chart-hit-area{ fill:transparent; cursor:crosshair; }
-  .pt-dot, .pt-dot-acc{ transition:filter .1s ease; }
+  .chart-hit-area{ fill:transparent; }
+  .chart-tooltip{
+    position:absolute; left:0; top:0; height:34px;
+    display:flex; align-items:center; gap:9px; padding:0 12px; white-space:nowrap;
+    background:#0d1b33; border:1px solid rgba(95,194,252,0.35); border-radius:9px;
+    pointer-events:none; opacity:0; transition:opacity .1s ease; z-index:5;
+    transform:translateX(-50%);
+  }
+  .chart-tooltip.show{ opacity:1; }
+  .chart-tooltip .ct-date{ font-size:12px; color:var(--feature-accent-dim); font-weight:600; }
+  .chart-tooltip .ct-val{ font-family:'Sora',sans-serif; font-size:13.5px; font-weight:700; color:#fff; }
+  .tc-empty{ font-size:12.5px; color:var(--feature-accent-dim); text-align:center; padding:26px 0; }
+
+  /* History-style tooltip (tt-point): floats just above the hovered point, two lines — from the History mockup */
+  .chart-tooltip.tt-point{
+    top:0; height:auto; display:block; padding:9px 12px;
+    transform:translate(-50%,-110%);
+  }
+  .chart-tooltip.tt-point .ct-date{ display:block; }
+  .chart-tooltip.tt-point .ct-val{ display:block; font-size:16px; margin-top:2px; }
+
+  /* DESKTOP ONLY (Home) */
+  @media (min-width:641px){
+    .trend-chart-wrap{ margin:12px -8px 0; width:auto; }
+    .tc-head{ padding:0 8px; }
+  }
+  @media (max-width:640px){
+    .trend-chart-wrap{ margin-top:8px; }
+    .chart-axis-label{ font-size:17px; }
+  }
 
   /* ========================================================= */
   /* DIFFICULTY PICKER (modal)                                  */
@@ -708,7 +722,7 @@
   .trend-top .tc-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:19px; margin:5px 0 3px; color:#fff; }
   .trend-top .tc-desc{ font-size:12.5px; color:var(--feature-accent-dim); line-height:1.45; }
   .trend-top .tc-legend{ margin-top:6px; }
-  .hist-chart{ position:relative; margin-top:14px; }
+  .hist-chart{ position:relative; }
 
   .trend-bottom{
     display:flex; justify-content:space-between; align-items:center; margin-top:16px;
@@ -815,6 +829,57 @@
     .sr-line2 .sr-qs, .sr-line2 .sr-avg{ text-align:left; }
     .sr-line2 .sr-acc{ text-align:right; }
     .see-full-btn{ font-size:14px; padding:13px; }
+  }
+
+  /* ---------- HISTORY: parity with the History mockup (sizes, chart, skill cards) ---------- */
+  #view-history .wrap{ max-width:900px; }
+  #view-history .topbar{ margin-bottom:22px; }
+  #view-history .topbar-right, #view-history-skill .topbar-right{ gap:8px; z-index:1; width:auto; }
+  #view-history .back-link, #view-history-skill .back-link, #view-history-full .back-link{ z-index:1; }
+  .icon-tooltip::after{ content:""; position:absolute; bottom:100%; right:12px; border:5px solid transparent; border-bottom-color:var(--ink); }
+  #view-history .section-label{ margin:0 0 12px; }
+
+  /* trend card + chart (History-style: legend sits in the card header, info box floats above the hovered point) */
+  .trend-card{ margin-bottom:0; }
+  .trend-bottom{ border-top-color:rgba(255,255,255,0.1); }
+  .trend-top .tc-legend{ margin-top:6px; }
+  .hist-chart .trend-chart-wrap{ margin-top:18px; }
+  .hist-chart .chart-axis-label{ font-size:14px; }
+
+  /* by-skill cards on History: chevron layout, roomier than Home's */
+  #view-history .skill-grid{ grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px; margin-bottom:28px; }
+  #view-history .skill-card{ gap:12px; }
+  #view-history .sk-top{ justify-content:space-between; }
+
+  @media (min-width:861px){
+    .trend-card{ padding:18px; }
+    .hist-chart .trend-chart-wrap{ width:auto; margin:0 -8px; }
+    .hist-chart .trend-svg{ width:100%; height:230px; }
+    .hist-chart .chart-axis-label{ font-size:14.5px; }
+    .trend-top .tc-tag{ font-size:11.5px; }
+    .trend-stat .num{ font-size:19px; }
+    .trend-stat .lbl{ font-size:10px; }
+    #view-history .page-title, #view-history-skill .page-title, #view-history-full .page-title{ font-size:19px; }
+    .history-col-side .section-label{ margin-top:0; }
+  }
+
+  @media (max-width:860px){
+    #view-history .wrap{ padding:20px 12px 50px; }
+    #view-history .topbar{ padding-top:0; }
+    #view-history-skill .topbar, #view-history-full .topbar{ padding-top:0; }
+    .history-col-side{ margin-top:0; }
+    .trend-top .tc-desc{ font-size:12.5px; }
+    .hist-chart .trend-chart-wrap{ margin:10px 0 0; width:100%; }
+    .hist-chart .chart-axis-label{ font-size:17px; }
+    .trend-stat .lbl{ font-size:9.5px; }
+    #view-history .section-label{ font-size:15px; }
+    #view-history .skill-grid{ grid-template-columns:1fr 1fr; gap:9px; margin-bottom:0; }
+    #view-history .skill-card{ padding:12px; gap:10px; }
+    #view-history .sk-icon{ width:38px; height:38px; font-size:13px; }
+    #view-history .sk-name{ font-size:15px; }
+    #view-history .sk-nums{ gap:16px; }
+    #view-history .sk-nums .num{ font-size:17px; }
+    #view-history .sk-nums .lbl{ font-size:9.5px; }
   }
 
   /* ---------- HISTORY: Skill Detail + Full History (Step 4b) ---------- */

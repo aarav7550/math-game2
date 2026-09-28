@@ -22,7 +22,15 @@ const TrendChart = (function(){
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
 
-  function mount(container, sessionPoints){
+  // opts.legend  (default true)  — draw the Avg time / Accuracy legend strip above the plot.
+  //                               History passes false: its legend lives in the card header.
+  // opts.tooltip ('strip' | 'point', default 'strip') — 'strip': the info box replaces the legend
+  //                               strip right above the graph (Home). 'point': it floats above the
+  //                               hovered point, two lines (History / Skill Detail).
+  function mount(container, sessionPoints, opts){
+    opts = opts || {};
+    const showLegend = opts.legend !== false;
+    const tipPoint = opts.tooltip === 'point';
     const today = dayStart(Date.now());
     // Group sessions by calendar day and average val/acc within each day — one
     // point per day on the graph, not one point per session played that day.
@@ -48,13 +56,15 @@ const TrendChart = (function(){
     const gid = 'tcFill' + (++seq);
     container.innerHTML =
       '<div class="trend-chart-wrap">'
-      + '<div class="tc-head">'
-      +   '<div class="tc-legend">'
-      +     '<span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>'
-      +     '<span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>'
-      +   '</div>'
-      + '</div>'
-      + '<div class="chart-tooltip"><span class="ct-date"></span><span class="ct-val"></span></div>'
+      + (showLegend
+        ? '<div class="tc-head">'
+        +   '<div class="tc-legend">'
+        +     '<span class="leg-item"><span class="leg-dash leg-time"></span>Avg time</span>'
+        +     '<span class="leg-item"><span class="leg-dash leg-acc"></span>Accuracy</span>'
+        +   '</div>'
+        + '</div>'
+        : '')
+      + '<div class="chart-tooltip' + (tipPoint ? ' tt-point' : '') + '"><span class="ct-date"></span><span class="ct-val"></span></div>'
       + '<svg class="trend-svg" viewBox="0 0 640 260" preserveAspectRatio="none">'
       +   '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
       +     '<stop offset="0%" stop-color="#5FC2FC" stop-opacity="0.32"/>'
@@ -131,7 +141,7 @@ const TrendChart = (function(){
     });
     pointsLayer.innerHTML = ptsHtml;
 
-    const pts = rows.map((r,i) => ({ x: xFor(i), label: labelFor(r.daysAgo, today), val: r.val, acc: r.acc }));
+    const pts = rows.map((r,i) => ({ x: xFor(i), y: yFor(r.val), label: labelFor(r.daysAgo, today), val: r.val, acc: r.acc }));
 
     const tooltip = container.querySelector('.chart-tooltip');
     const ctDate = tooltip.querySelector('.ct-date'), ctVal = tooltip.querySelector('.ct-val');
@@ -161,6 +171,7 @@ const TrendChart = (function(){
       tooltip.classList.add('show');
       const w = tooltip.offsetWidth, wrapW = wrap.clientWidth;
       const cx = p.x * (r.width / 640);
+      if(tipPoint) tooltip.style.top = (svg.offsetTop + p.y * (r.height / 260)) + 'px';
       tooltip.style.left = Math.min(Math.max(cx, w/2), wrapW - w/2) + 'px';
       crosshair.setAttribute('x1', p.x); crosshair.setAttribute('x2', p.x);
       crosshair.classList.add('show');
