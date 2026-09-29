@@ -12,13 +12,27 @@ const PARITY_LABEL = { any:'Any', even:'Even only', odd:'Odd only' };
 const FULL_PAGE_SIZE = 15;
 
 // ---------- small helpers ----------
-function fmtSessionDate(ts){
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function startOfDayMs(ts){
   const d = new Date(ts);
-  const now = new Date();
-  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  const time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
-  const day = sameDay ? 'Today' : d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
-  return day + ', ' + time;
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+// "Today" / "Yesterday" / "7 Sep, 2026" — used for the day headers above each group of rows
+function fmtDayLabel(ts){
+  const diff = Math.round((startOfDayMs(Date.now()) - startOfDayMs(ts)) / 86400000);
+  if(diff === 0) return 'Today';
+  if(diff === 1) return 'Yesterday';
+  const d = new Date(ts);
+  return d.getDate() + ' ' + MONTH_NAMES[d.getMonth()] + ', ' + d.getFullYear();
+}
+// "4:12 PM" — shown inside each row
+function fmtTimeLabel(ts){
+  const d = new Date(ts);
+  let h = d.getHours();
+  const m = d.getMinutes(), ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h === 0) h = 12;
+  return h + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
 }
 
 function sessionLevelInfo(s){
@@ -36,7 +50,8 @@ function trendPointsFor(list){
   return list.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
 }
 
-// One row. `withSkill` false = Skill Detail layout (no skill column, page is already one skill).
+// One row, matching the mockups: line 1 = skill + time (Skill Detail: time only, the page is
+// already one skill), line 2 = level / questions / avg / accuracy.
 function sessionRowHtml(s, withSkill){
   const lv = sessionLevelInfo(s);
   const levelCell = lv.range
@@ -48,23 +63,51 @@ function sessionRowHtml(s, withSkill){
       + '<div class="lp-row"><span>Type</span><b>' + lv.type + '</b></div>'
       + '</div>'
     : '';
+  const line1 = '<div class="sr-line1">'
+    + (withSkill ? '<div class="sr-cell sr-skill">' + (historySkillLabels[s.skill] || s.skill) + '</div>' : '')
+    + '<div class="sr-cell sr-time">' + fmtTimeLabel(s.date) + '</div>'
+    + '</div>';
   const line2 = '<div class="sr-line2">'
     + levelCell
     + '<div class="sr-cell sr-qs">' + (s.questions || '—') + ' Qs</div>'
     + '<div class="sr-cell sr-avg">' + s.avgTime.toFixed(1) + 's avg</div>'
     + '<div class="sr-cell sr-acc">' + s.accuracy + '% acc</div>'
     + '</div>';
-  if(withSkill){
-    return '<div class="session-row">'
-      + '<div class="sr-line1">'
-      +   '<div class="sr-cell sr-date">' + fmtSessionDate(s.date) + '</div>'
-      +   '<div class="sr-cell sr-skill">' + (historySkillLabels[s.skill] || s.skill) + '</div>'
-      + '</div>'
-      + line2 + popover + '</div>';
+  return '<div class="session-row">' + line1 + line2 + popover + '</div>';
+}
+
+// Rows grouped under a day header ("Today", "Yesterday", "7 Sep, 2026"). `list` must already be
+// newest-first. If one day spans two pages, its header simply repeats at the top of the next page.
+function groupedRowsHtml(list, withSkill){
+  let html = '', lastDay = null;
+  list.forEach(s => {
+    const day = startOfDayMs(s.date);
+    if(day !== lastDay){
+      html += '<div class="day-header">' + fmtDayLabel(s.date) + '</div>';
+      lastDay = day;
+    }
+    html += sessionRowHtml(s, withSkill);
+  });
+  return html;
+}
+
+// Prev / 1 … 4 5 6 … 9 / Next. Shared by Skill Detail and Full History. Empty when only one page.
+function pagerHtml(page, pages){
+  if(pages <= 1) return '';
+  const nums = [];
+  for(let p = 1; p <= pages; p++){
+    if(p === 1 || p === pages || Math.abs(p - page) <= 1) nums.push(p);
+    else if(nums[nums.length - 1] !== '…') nums.push('…');
   }
-  return '<div class="session-row">'
-    + '<div class="sr-cell sr-date">' + fmtSessionDate(s.date) + '</div>'
-    + line2 + popover + '</div>';
+  const chev = (d) => '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
+  let html = '<button class="page-btn page-nav-btn" data-page="' + (page - 1) + '"' + (page === 1 ? ' disabled' : '') + '>' + chev('M15 18l-6-6 6-6') + 'Prev</button>';
+  nums.forEach(n => {
+    html += n === '…'
+      ? '<span class="page-ellipsis">…</span>'
+      : '<button class="page-btn' + (n === page ? ' active' : '') + '" data-page="' + n + '">' + n + '</button>';
+  });
+  html += '<button class="page-btn page-nav-btn" data-page="' + (page + 1) + '"' + (page === pages ? ' disabled' : '') + '>Next' + chev('M9 18l6-6-6-6') + '</button>';
+  return html;
 }
 
 // ---------- level popover (one-time delegation per stable list container) ----------
@@ -205,7 +248,7 @@ function renderRecentSessions(){
     return;
   }
   seeAll.style.display = 'block';
-  sessionsListEl.innerHTML = sessions.slice(-10).reverse().map(s => sessionRowHtml(s, true)).join('');
+  sessionsListEl.innerHTML = groupedRowsHtml(sessions.slice(-10).reverse(), true);
 }
 
 function renderHistory(){
@@ -237,7 +280,9 @@ const skdEls = {
 };
 const skdListEl = document.getElementById('skdSessionsList');
 const skdEmptyNote = document.getElementById('skdEmptyNote');
+const skdPaginationEl = document.getElementById('skdPagination');
 let skdCurrentKey = null;
+let skdPage = 1;
 
 function renderSkillDetail(){
   const key = skdCurrentKey;
@@ -251,28 +296,41 @@ function renderSkillDetail(){
   icon.style.background = 'var(--sk-' + key + '-soft)';
   icon.style.color = 'var(--sk-' + key + ')';
   document.getElementById('skdPageTitleText').textContent = label;
-  document.getElementById('skdTrendDesc').textContent = 'Average answer time per session, ' + label;
+  document.getElementById('skdTrendDesc').textContent = 'Average answer time per session — ' + label + ' only';
   document.getElementById('skdSectionLabel').textContent = 'All sessions — ' + label;
 
   renderTrendCard(skdEls, trendPointsFor(list));
 
   if(list.length === 0){
     skdListEl.innerHTML = '';
+    skdPaginationEl.innerHTML = '';
     skdEmptyNote.style.display = 'block';
     skdEmptyNote.textContent = 'No ' + label + ' rounds yet — play one to see it here.';
-  } else {
-    skdEmptyNote.style.display = 'none';
-    skdListEl.innerHTML = list.slice().reverse().map(s => sessionRowHtml(s, false)).join('');
+    return;
   }
+  skdEmptyNote.style.display = 'none';
+  const pages = Math.max(1, Math.ceil(list.length / FULL_PAGE_SIZE));
+  skdPage = Math.min(Math.max(1, skdPage), pages);
+  const slice = list.slice().reverse().slice((skdPage - 1) * FULL_PAGE_SIZE, skdPage * FULL_PAGE_SIZE);
+  skdListEl.innerHTML = groupedRowsHtml(slice, false);
+  skdPaginationEl.innerHTML = pagerHtml(skdPage, pages);
 }
 
 function openSkillDetail(key){
   skdCurrentKey = key;
+  skdPage = 1;
   renderSkillDetail();
   showView('historySkill');
 }
 
 wireLevelPopovers(skdListEl);
+skdPaginationEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.page-btn');
+  if(!btn || btn.disabled || btn.classList.contains('active')) return;
+  skdPage = parseInt(btn.dataset.page, 10);
+  renderSkillDetail();
+  skdListEl.closest('.sessions-section').scrollIntoView({ behavior:'smooth', block:'start' });
+});
 wireTooltipBtn('btnSkdExport', 'tipSkdExport');
 wireTooltipBtn('btnSkdImport', 'tipSkdImport');
 
@@ -300,22 +358,8 @@ function renderFullHistory(){
   fullPage = Math.min(Math.max(1, fullPage), pages);
   const slice = sessions.slice().reverse().slice((fullPage - 1) * FULL_PAGE_SIZE, fullPage * FULL_PAGE_SIZE);
   fullCountNoteEl.textContent = total + (total === 1 ? ' session total' : ' sessions total');
-  fullListEl.innerHTML = slice.map(s => sessionRowHtml(s, true)).join('');
-
-  const nums = [];
-  for(let p = 1; p <= pages; p++){
-    if(p === 1 || p === pages || Math.abs(p - fullPage) <= 1) nums.push(p);
-    else if(nums[nums.length - 1] !== '…') nums.push('…');
-  }
-  const chev = (d) => '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
-  let html = '<button class="page-btn page-nav-btn" data-page="' + (fullPage - 1) + '"' + (fullPage === 1 ? ' disabled' : '') + '>' + chev('M15 18l-6-6 6-6') + 'Prev</button>';
-  nums.forEach(n => {
-    html += n === '…'
-      ? '<span class="page-ellipsis">…</span>'
-      : '<button class="page-btn' + (n === fullPage ? ' active' : '') + '" data-page="' + n + '">' + n + '</button>';
-  });
-  html += '<button class="page-btn page-nav-btn" data-page="' + (fullPage + 1) + '"' + (fullPage === pages ? ' disabled' : '') + '>Next' + chev('M9 18l6-6-6-6') + '</button>';
-  fullPaginationEl.innerHTML = html;
+  fullListEl.innerHTML = groupedRowsHtml(slice, true);
+  fullPaginationEl.innerHTML = pagerHtml(fullPage, pages);
 }
 
 function openFullHistory(){
@@ -330,8 +374,7 @@ fullPaginationEl.addEventListener('click', (e) => {
   if(!btn || btn.disabled || btn.classList.contains('active')) return;
   fullPage = parseInt(btn.dataset.page, 10);
   renderFullHistory();
-  const v = document.getElementById('view-history-full');
-  if(v) v.scrollTop = 0;
+  fullListEl.scrollIntoView({ behavior:'smooth', block:'start' });
 });
 
 // ============================================================

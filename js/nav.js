@@ -39,17 +39,36 @@
   }
 
   // ---- screen switching wrapper ----
-  function afterShow(name){
+  function viewEl(name){
+    return document.getElementById('view-' + (name === 'historySkill' ? 'history-skill' : name === 'historyFull' ? 'history-full' : name));
+  }
+
+  // Page-change animation: the screen that just appeared slides/fades in (see .anim-* in style.css).
+  //   'fwd'  = going deeper (Home -> History -> Skill Detail): slides in from the right
+  //   'back' = going back / to Home: slides in from the left
+  //   'fade' = Play <-> Results, where a slide would fight with the answer box getting focus
+  // The class is removed and re-added each time so the animation replays on every visit.
+  function animateIn(name, dir){
+    const v = viewEl(name);
+    if(!v) return;
+    v.classList.remove('anim-fwd', 'anim-back', 'anim-fade');
+    void v.offsetWidth; // force reflow so the same class can replay
+    v.classList.add('anim-' + dir);
+  }
+
+  function afterShow(name, dir){
     if(name === 'home' && typeof renderHomeDashboard === 'function') renderHomeDashboard(); // stats refresh after a round / import
-    const v = document.getElementById('view-' + (name === 'historySkill' ? 'history-skill' : name === 'historyFull' ? 'history-full' : name));
+    const v = viewEl(name);
     if(v) v.scrollTop = 0;
+    animateIn(name, dir);
   }
 
   window.showView = function(name){
     const prev = currentView;
     rawShowView(name);
     currentView = name;
-    afterShow(name);
+    const isRoundSwap = (prev === 'play' && name === 'results') || (prev === 'results' && name === 'play');
+    afterShow(name, name === prev ? 'fade' : isRoundSwap ? 'fade' : name === 'home' ? 'back' : 'fwd');
     if(name === prev) return;
 
     if(name === 'home'){
@@ -94,7 +113,7 @@
     if(st.v !== currentView){
       rawShowView(st.v);
       currentView = st.v;
-      afterShow(st.v);
+      afterShow(st.v, 'back');
       // views rendered on open need fresh data if things changed while away
       if(st.v === 'history' && typeof renderHistory === 'function') renderHistory();
     }
