@@ -147,28 +147,39 @@ function renderDashboardStats(){
   document.getElementById('statLastAvg').textContent = last ? last.avgTime.toFixed(1) + 's' : '—';
   document.getElementById('statLastAcc').textContent = last ? last.accuracy + '% accuracy' : 'no rounds yet';
 
-  // History card (top-of-dashboard trend + overall avg/acc)
+  // History card — same numbers as the History Overview card (see renderTrendCard in history.js):
+  // left = latest day's avg time + accuracy, right = change since the first day on the graph.
+  // (Kept local on purpose: history.js loads AFTER this file, and this runs once at load.)
   const hcTitle = document.getElementById('hcTitle');
-  const overallAvgEl = document.getElementById('hcOverallAvg');
-  const overallAccEl = document.getElementById('hcOverallAcc');
-  if(sessions.length === 0){
-    hcTitle.textContent = 'Getting started';
-    overallAvgEl.textContent = '—';
-    overallAccEl.textContent = '—';
-  } else {
-    hcTitle.textContent = 'Your progress';
-    const overallAvg = sessions.reduce((a,s) => a+s.avgTime, 0) / sessions.length;
-    const overallAcc = Math.round(sessions.reduce((a,s) => a+s.accuracy, 0) / sessions.length);
-    overallAvgEl.textContent = overallAvg.toFixed(1) + 's';
-    overallAccEl.textContent = overallAcc + '%';
-  }
+  const curAvgEl = document.getElementById('hcCurAvg');
+  const curAccEl = document.getElementById('hcCurAcc');
+  const growthEl = document.getElementById('hcGrowth');
+  const growthLblEl = document.getElementById('hcGrowthLbl');
   const trendPoints = sessions.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
   const homeChart = TrendChart.mount(document.getElementById('homeTrend'), trendPoints);
-  // Title follows the trend, same wording/threshold as the History page's card.
-  if(homeChart && homeChart.pts.length >= 2 && homeChart.pts[0].val > 0){
-    const p0 = homeChart.pts[0], p1 = homeChart.pts[homeChart.pts.length - 1];
-    const pct = Math.round(((p0.val - p1.val) / p0.val) * 100);
-    hcTitle.textContent = pct >= 3 ? 'Getting faster' : (pct <= -3 ? 'Slowing down' : 'Holding steady');
+  const hpts = homeChart ? homeChart.pts : [];
+
+  hcTitle.textContent = trendPoints.length === 0 ? 'Getting started' : 'Your progress';
+  growthEl.className = 'num';
+  growthLblEl.textContent = '';
+  if(hpts.length === 0){
+    curAvgEl.textContent = '—';
+    curAccEl.textContent = '—';
+    growthEl.textContent = '—';
+  } else {
+    const p0 = hpts[0], p1 = hpts[hpts.length - 1];
+    curAvgEl.textContent = p1.val.toFixed(1) + 's';
+    curAccEl.textContent = Math.round(p1.acc) + '%';
+    if(hpts.length < 2 || p0.val <= 0){
+      growthEl.textContent = '—';
+      growthLblEl.textContent = 'play on another day to see growth';
+    } else {
+      const pct = Math.round(((p0.val - p1.val) / p0.val) * 100);
+      growthEl.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+      growthEl.className = 'num ' + (pct >= 0 ? 'pos' : 'neg');
+      growthLblEl.textContent = (pct >= 0 ? 'faster' : 'slower') + ' vs ' + p0.label;
+      hcTitle.textContent = pct >= 3 ? 'Getting faster' : (pct <= -3 ? 'Slowing down' : 'Holding steady');
+    }
   }
 
   // Feeling brave strip stats — best avg + overall accuracy across mixed-mode rounds only
@@ -233,10 +244,15 @@ document.getElementById('historyCard').addEventListener('click', () => {
   showView('history');
 });
 
-// Mixed drill strip: deliberately a no-op for now (see math-game project notes) —
-// Mixed needs an Include tab + per-skill config the Difficulty Picker mockup doesn't
-// have yet. Wired in a later step.
-document.getElementById('btnMixedStart').addEventListener('click', () => {});
+// Mixed drill strip: shows a "coming soon" popup for now — Mixed needs an Include tab +
+// per-skill config the Difficulty Picker doesn't have yet. (Challenge codes that contain
+// several skills still start a mixed round; only this Home entry point is blocked.)
+const mixedSoonModal = document.getElementById('mixedSoonModal');
+function closeMixedSoon(){ mixedSoonModal.classList.remove('show'); }
+document.getElementById('btnMixedStart').addEventListener('click', () => mixedSoonModal.classList.add('show'));
+document.getElementById('btnSoonClose').addEventListener('click', closeMixedSoon);
+document.getElementById('btnSoonOk').addEventListener('click', closeMixedSoon);
+mixedSoonModal.addEventListener('click', (e) => { if(e.target === mixedSoonModal) closeMixedSoon(); });
 
 // ---------- Difficulty Picker ----------
 const DIFF_LABELS = { veryeasy:'Very Easy', easy:'Easy', difficult:'Difficult', verydifficult:'Very Difficult', custom:'Custom' };
@@ -396,6 +412,7 @@ function openDifficultyPicker(skillKey){
   pickerLevel = null; // deliberate: opening never pre-selects a level
   pickerCustom = Object.assign({}, skillConfig[skillKey]); // start custom editor from saved config
   selectedQuestionCount = 15;
+  practiceCheckbox.checked = false; // opening never pre-ticks it, so a normal round is the default
 
   diffModal.style.setProperty('--sc', SKILL_COLOR[skillKey]);
   dmIcon.textContent = SKILL_ICON[skillKey];
@@ -551,7 +568,9 @@ function toggleNote(btn){
 window.toggleNote = toggleNote;
 document.addEventListener('mouseover', (e) => {
   const btn = e.target.closest('.info-btn');
-  if(btn) positionNote(btn);
+  if(btn){ positionNote(btn); return; }
+  const row = e.target.closest('.dm-practice'); // hovering the "Practice mode" label also shows its note
+  if(row) positionNote(row.querySelector('.info-btn'));
 });
 window.addEventListener('resize', () => {
   document.querySelectorAll('.info-note.open').forEach(n => positionNote(n.closest('.info-btn')));
@@ -593,7 +612,7 @@ btnStartRound.addEventListener('click', () => {
 
   state.skill = key;
   state.totalQuestions = selectedQuestionCount;
-  state.practiceMode = false;
+  state.practiceMode = practiceCheckbox.checked;
 
   closeDifficultyPicker();
   startRound();
@@ -655,11 +674,9 @@ document.getElementById('btnShareSet').addEventListener('click', () => {
 // History's own back button (btnHistoryBack) is now wired in history.js,
 // alongside the rest of the History screen's DOM.
 
-// NOTE: Practice mode has no UI in the new Home/Difficulty Picker mockups yet
-// (flagged gap - old Home had a checkbox for it, not carried into the redesign).
-// Stubbed so existing state.practiceMode reads/writes elsewhere don't throw until
-// a real place for it is designed.
-const practiceCheckbox = { checked: false };
+// Practice mode checkbox lives in the Difficulty Picker (above the Start strip).
+// Ticked = no timer and the round is saved separately, not into history/stats.
+const practiceCheckbox = document.getElementById('practiceToggle');
 
 // ---------- challenge codes: create (dedicated screen) ----------
 const challengeShowModal = document.getElementById('challengeShowModal');

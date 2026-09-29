@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Numbers — Mental Math Drills</title>
 
 <!-- PWA: installability -->
@@ -73,8 +73,14 @@
         </div>
         <div class="hc-chart" id="homeTrend"></div>
         <div class="hc-bottom">
-          <div class="hc-stat"><div class="num" id="hcOverallAvg">—</div><div class="lbl">Overall avg</div></div>
-          <div class="hc-stat"><div class="num" id="hcOverallAcc">—</div><div class="lbl">Overall acc.</div></div>
+          <div class="hc-stats-row">
+            <div class="hc-stat"><div class="num" id="hcCurAvg">—</div><div class="lbl">Current avg</div></div>
+            <div class="hc-stat"><div class="num" id="hcCurAcc">—</div><div class="lbl">Accuracy</div></div>
+          </div>
+          <div class="hc-stat growth">
+            <div class="num" id="hcGrowth">—</div>
+            <div class="lbl" id="hcGrowthLbl"></div>
+          </div>
         </div>
       </div>
 
@@ -206,6 +212,20 @@
             <input type="number" class="qcount-inline-input" id="qcountInlineValue" min="1" placeholder="—">
           </button>
         </div>
+      </div>
+
+      <div class="dm-practice" id="dmPractice">
+        <label class="practice-check">
+          <input type="checkbox" id="practiceToggle">
+          <span class="pc-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+          </span>
+          <span class="pc-label">Practice mode</span>
+        </label>
+        <span class="info-btn" onclick="event.stopPropagation(); toggleNote(this)">
+          <span class="info-dot">i</span>
+          <span class="info-note"><span class="in-arrow"></span><b>Practice mode</b><br>No timer, so you can take your time. This round isn't counted in your history or stats.</span>
+        </span>
       </div>
 
       <div class="dm-start-strip">
@@ -509,6 +529,22 @@
       <button class="btn-ghost" id="btnChallengeEnterCancel">Cancel</button>
       <button class="btn-primary" id="btnChallengeEnterGo">Start round</button>
     </div>
+  </div>
+</div>
+
+<!-- mixed drill: coming soon -->
+<div class="modal-overlay" id="mixedSoonModal">
+  <div class="soon-modal" role="dialog" aria-labelledby="soonTitle">
+    <button class="dm-close" id="btnSoonClose" aria-label="Close">✕</button>
+    <div class="soon-icon">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#007EA7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>
+      </svg>
+    </div>
+    <div class="soon-eyebrow">Feeling brave?</div>
+    <div class="soon-title" id="soonTitle">Mixed drill is coming soon</div>
+    <p class="soon-text">We're still building the setup for it: choosing which skills go in the mix and how hard each one is. Until then, pick a single skill above.</p>
+    <button class="soon-btn" id="btnSoonOk">Got it</button>
   </div>
 </div>
 

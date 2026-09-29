@@ -31,7 +31,7 @@
     if(exitOv && exitOv.classList.contains('show')){ document.getElementById('btnCancelExit').click(); return true; }
     const diffOv = document.getElementById('diffModalOverlay');
     if(diffOv && diffOv.classList.contains('show')){ closeDifficultyPicker(); return true; }
-    for(const id of ['challengeShowModal','challengeEnterModal','settingsModal']){
+    for(const id of ['mixedSoonModal','challengeShowModal','challengeEnterModal','settingsModal']){
       const el = document.getElementById(id);
       if(el && el.classList.contains('show')){ el.classList.remove('show'); return true; }
     }
