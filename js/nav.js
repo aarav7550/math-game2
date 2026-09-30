@@ -43,32 +43,74 @@
     return document.getElementById('view-' + (name === 'historySkill' ? 'history-skill' : name === 'historyFull' ? 'history-full' : name));
   }
 
-  // Page-change animation: the screen that just appeared slides/fades in (see .anim-* in style.css).
-  //   'fwd'  = going deeper (Home -> History -> Skill Detail): slides in from the right
-  //   'back' = going back / to Home: slides in from the left
-  //   'fade' = Play <-> Results, where a slide would fight with the answer box getting focus
-  // The class is removed and re-added each time so the animation replays on every visit.
-  function animateIn(name, dir){
-    const v = viewEl(name);
-    if(!v) return;
-    v.classList.remove('anim-fwd', 'anim-back', 'anim-fade');
-    void v.offsetWidth; // force reflow so the same class can replay
-    v.classList.add('anim-' + dir);
+  // Page-change animation (stack style, like a native app):
+  //   forward: the new screen slides in from the right OVER the old one, which drifts left underneath
+  //   back:    the current screen slides out to the right, revealing the old one underneath
+  //   Play <-> Results (and re-showing the same screen) swap instantly, no animation
+  // Both screens must be visible while it runs, so the leaving one is temporarily re-shown by
+  // the .vt-top / .vt-under classes in style.css and cleaned up when the slide finishes.
+  const SLIDE_MS = 300;
+  const SLIDE_EASE = 'cubic-bezier(.22,.7,.25,1)';
+  const UNDER_SHIFT = '-25%';
+  let slideToken = 0;
+
+  function cleanupSlide(){
+    document.querySelectorAll('.vt-top, .vt-under').forEach(el => {
+      el.getAnimations().forEach(a => a.cancel());
+      el.classList.remove('vt-top', 'vt-under');
+    });
   }
 
-  function afterShow(name, dir){
+  // hiding a screen resets its scroll position; remember it so the leaving screen doesn't jump to the top mid-slide
+  function snapshotScroll(v){
+    const out = [];
+    if(!v) return out;
+    [v, ...v.querySelectorAll('*')].forEach(el => { if(el.scrollTop > 0) out.push([el, el.scrollTop]); });
+    return out;
+  }
+
+  function slide(pv, nv, dir, scrolls){
+    cleanupSlide();
+    const token = ++slideToken;
+    if(!pv || !nv || pv === nv || dir === 'none') return;
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const fwd = dir === 'fwd';
+    const top = fwd ? nv : pv;
+    const under = fwd ? pv : nv;
+    pv.classList.add(fwd ? 'vt-under' : 'vt-top');
+    nv.classList.add(fwd ? 'vt-top' : 'vt-under');
+    scrolls.forEach(([el, y]) => { el.scrollTop = y; });
+
+    const opts = { duration: SLIDE_MS, easing: SLIDE_EASE, fill: 'forwards' };
+    const topAnim = top.animate(
+      fwd ? [{ transform:'translateX(100%)' }, { transform:'translateX(0)' }]
+          : [{ transform:'translateX(0)' }, { transform:'translateX(100%)' }], opts);
+    const underAnim = under.animate(
+      fwd ? [{ transform:'translateX(0)' }, { transform:'translateX(' + UNDER_SHIFT + ')' }]
+          : [{ transform:'translateX(' + UNDER_SHIFT + ')' }, { transform:'translateX(0)' }], opts);
+
+    Promise.all([topAnim.finished, underAnim.finished])
+      .then(() => { if(token === slideToken) cleanupSlide(); })
+      .catch(() => {});   // cancelled by a newer navigation: it cleans up itself
+  }
+
+  // One place that swaps screens: used by showView() and by the system Back button.
+  function swap(prevName, name, dir){
+    const pv = viewEl(prevName);
+    const scrolls = snapshotScroll(pv);
+    rawShowView(name);
+    currentView = name;
     if(name === 'home' && typeof renderHomeDashboard === 'function') renderHomeDashboard(); // stats refresh after a round / import
-    const v = viewEl(name);
-    if(v) v.scrollTop = 0;
-    animateIn(name, dir);
+    const nv = viewEl(name);
+    if(nv) nv.scrollTop = 0;
+    slide(pv, nv, dir, scrolls);
   }
 
   window.showView = function(name){
     const prev = currentView;
-    rawShowView(name);
-    currentView = name;
     const isRoundSwap = (prev === 'play' && name === 'results') || (prev === 'results' && name === 'play');
-    afterShow(name, name === prev ? 'fade' : isRoundSwap ? 'fade' : name === 'home' ? 'back' : 'fwd');
+    swap(prev, name, name === prev || isRoundSwap ? 'none' : name === 'home' ? 'back' : 'fwd');
     if(name === prev) return;
 
     if(name === 'home'){
@@ -111,9 +153,7 @@
 
     depth = st.d;
     if(st.v !== currentView){
-      rawShowView(st.v);
-      currentView = st.v;
-      afterShow(st.v, 'back');
+      swap(currentView, st.v, 'back');
       // views rendered on open need fresh data if things changed while away
       if(st.v === 'history' && typeof renderHistory === 'function') renderHistory();
     }

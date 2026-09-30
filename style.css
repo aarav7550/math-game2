@@ -44,15 +44,14 @@
   .view{ flex:1; display:none; min-height:0; }
   .view.active{ display:flex; }
 
-  /* Page-change animation (class is added by js/nav.js each time a screen is shown).
-     Enter-only: the new screen slides/fades in, the old one is already gone. */
+  /* Page-change animation (stack style). js/nav.js adds these classes only WHILE a slide runs:
+     .vt-top   = the screen sliding in (forward) or out (back), sits above
+     .vt-under = the screen underneath, drifts left/right slightly
+     Both are pinned over each other so the old screen stays visible during the slide. */
   #app{ overflow:hidden; } /* stops the slide from ever creating a sideways scrollbar */
-  @keyframes viewInFwd{  from{ opacity:0; transform:translateX(32px);  } to{ opacity:1; transform:translateX(0); } }
-  @keyframes viewInBack{ from{ opacity:0; transform:translateX(-32px); } to{ opacity:1; transform:translateX(0); } }
-  @keyframes viewInFade{ from{ opacity:0; } to{ opacity:1; } }
-  .view.anim-fwd { animation:viewInFwd  .3s cubic-bezier(.22,.7,.25,1) backwards; }
-  .view.anim-back{ animation:viewInBack .3s cubic-bezier(.22,.7,.25,1) backwards; }
-  .view.anim-fade{ animation:viewInFade .22s ease-out backwards; }
+  .view.vt-top, .view.vt-under{ display:flex; position:absolute; inset:0; background:var(--bg); will-change:transform; }
+  .view.vt-top{ z-index:2; box-shadow:-10px 0 30px rgba(0,23,31,0.10); }
+  .view.vt-under{ z-index:1; }
 
   /* ---------- HOME view ---------- */
   #view-home{ flex-direction:column; overflow-y:auto; }

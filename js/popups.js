@@ -11,8 +11,8 @@
 // Loaded AFTER ui.js (any position after it is fine).
 // ============================================================
 (function(){
-  const OPEN_MS  = 340;
-  const CLOSE_MS = 240;
+  const OPEN_MS  = 220;
+  const CLOSE_MS = 150;
   const EASE_OUT = 'cubic-bezier(.22,.7,.25,1)';
   const EASE_IN  = 'cubic-bezier(.4,0,.6,1)';
 
@@ -50,7 +50,7 @@
     const src = (ORIGIN_OVERLAYS.has(ov.id) && lastOrigin && performance.now() - lastOriginAt < 500) ? lastOrigin : null;
     originOf.set(ov, src);
 
-    ov.animate([{ opacity:0 }, { opacity:1 }], { duration:220, easing:'ease-out' });
+    ov.animate([{ opacity:0 }, { opacity:1 }], { duration:140, easing:'ease-out' });
 
     const from = src && src.isConnected ? src.getBoundingClientRect() : null;
     if(usable(from)){
@@ -61,13 +61,13 @@
       );
       // contents stay hidden while the box is still small, so they never look stretched
       [...box.children].forEach(c => c.animate(
-        [{ opacity:0 }, { opacity:0, offset:.4 }, { opacity:1 }],
+        [{ opacity:0 }, { opacity:0, offset:.3 }, { opacity:1 }],
         { duration:OPEN_MS, easing:'linear' }
       ));
     } else {
       box.animate(
         [{ opacity:0, transform:'translateY(14px) scale(.94)' }, { opacity:1, transform:'none' }],
-        { duration:240, easing:EASE_OUT }
+        { duration:170, easing:EASE_OUT }
       );
     }
   }
@@ -95,10 +95,10 @@
         { duration:CLOSE_MS, easing:'linear', fill:'forwards' }
       )));
     } else {
-      anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:180, easing:'ease-in', fill:'forwards' }));
+      anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:120, easing:'ease-in', fill:'forwards' }));
       anims.push(box.animate(
         [{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(10px) scale(.96)' }],
-        { duration:180, easing:'ease-in', fill:'forwards' }
+        { duration:120, easing:'ease-in', fill:'forwards' }
       ));
     }
 
