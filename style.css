@@ -144,12 +144,13 @@
   .dgreet{ display:none; }
   @media (min-width:641px){
     .dgreet{ display:flex; flex-direction:column; gap:3px; margin-bottom:20px; }
-    .dgreet .dgreet-msg{ font-family:'Sora',sans-serif; font-size:18px; font-weight:700; color:var(--ink); line-height:1.3; }
+    .dgreet .dgreet-msg{ font-family:'Sora',sans-serif; font-size:20px; font-weight:700; color:var(--ink); line-height:1.3; }
     .dgreet .dgreet-name{
       display:inline-flex; align-items:center; gap:6px; max-width:100%;
       background:none; border:none; padding:0; cursor:pointer; font:inherit; text-align:left;
-      font-family:'Sora',sans-serif; font-size:26px; font-weight:800; line-height:1.25;
+      font-family:'Sora',sans-serif; font-size:30px; font-weight:800; line-height:1.25;
       color:var(--primary); overflow-wrap:anywhere;
+      transform-origin:left top; /* scroll shrink/fade is driven by ui.js */
       -webkit-tap-highlight-color:transparent;
     }
     .dgreet .dgreet-name.unset{
@@ -233,13 +234,13 @@
     .topbar{ padding-top:4px; }
 
     .greet{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; margin:10px 4px 18px; }
-    .greet-msg{ font-family:'Sora',sans-serif; font-weight:700; font-size:19px; color:var(--ink); line-height:1.3; }
+    .greet-msg{ font-family:'Sora',sans-serif; font-weight:700; font-size:21px; color:var(--ink); line-height:1.3; }
     .greet-name{
       display:inline-flex; align-items:center; gap:8px; max-width:100%;
       background:none; border:none; padding:0; cursor:pointer; text-align:left; overflow-wrap:anywhere;
-      font-family:'Sora',sans-serif; font-weight:800; font-size:30px; line-height:1.25; letter-spacing:-0.01em;
+      font-family:'Sora',sans-serif; font-weight:800; font-size:34px; line-height:1.25; letter-spacing:-0.01em;
       color:var(--primary);
-      transform-origin:left top; transition:opacity .15s ease;
+      transform-origin:left top; /* scroll shrink/fade is driven by ui.js, so no CSS transition */
       -webkit-tap-highlight-color:transparent;
     }
     .greet-name.unset{
