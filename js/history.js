@@ -73,7 +73,8 @@ function sessionRowHtml(s, withSkill){
     : '';
   const line1 = '<div class="sr-line1">'
     + (withSkill ? '<div class="sr-cell sr-skill">' + (historySkillLabels[s.skill] || s.skill) + '</div>' : '')
-    + '<div class="sr-cell sr-time">' + fmtTimeLabel(s.date) + (s.practice ? '<span class="sr-prac">Practice</span>' : '') + '</div>'
+    + '<div class="sr-cell sr-time">' + fmtTimeLabel(s.date) + '</div>'
+    + (s.practice ? '<div class="sr-cell sr-prac-cell"><span class="sr-prac">Practice</span></div>' : '')
     + '</div>';
   const line2 = '<div class="sr-line2">'
     + levelCell
@@ -81,7 +82,7 @@ function sessionRowHtml(s, withSkill){
     + '<div class="sr-cell sr-avg">' + s.avgTime.toFixed(1) + 's avg</div>'
     + '<div class="sr-cell sr-acc">' + s.accuracy + '% acc</div>'
     + '</div>';
-  return '<div class="session-row">' + line1 + line2 + popover + '</div>';
+  return '<div class="session-row' + (s.practice ? ' is-practice' : '') + '">' + line1 + line2 + popover + '</div>';
 }
 
 // Rows grouped under a day header ("Today", "Yesterday", "7 Sep, 2026"). `list` must already be
