@@ -1170,7 +1170,6 @@
   .practice-check .pc-label{ font-size:13.5px; font-weight:600; color:var(--ink); }
   /* the shared .info-btn is absolutely positioned for the difficulty cards — make it a normal inline icon here */
   .dm-practice .info-btn{ position:relative; top:auto; right:auto; bottom:auto; width:24px; height:24px; flex-shrink:0; }
-  .dm-practice:hover .info-note{ opacity:1; visibility:visible; transform:translateY(0); }
 
 
   /* ---------- MOBILE ONLY: breathing room at the top of every page except Play ----------
@@ -1181,9 +1180,9 @@
     #view-home .wrap,
     #view-history .wrap,
     #view-history-skill .wrap,
-    #view-history-full .wrap{ padding-top:calc(env(safe-area-inset-top, 0px) + 28px); }
+    #view-history-full .wrap{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); }
     #view-results,
-    #view-challenge{ padding-top:calc(env(safe-area-inset-top, 0px) + 28px); }
+    #view-challenge{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); }
   }
 
 
@@ -1198,4 +1197,19 @@
   @media (max-width:640px){
     .history-card .hc-stats-row{ gap:14px; }
     .history-card .hc-stat .num{ font-size:19px; }
+  }
+
+
+  /* Home history card: divider between the graph and the avg/acc/growth row, same as History Overview */
+  .history-card .hc-chart{ margin:0; }
+  .history-card .hc-bottom{
+    margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.14);
+    align-items:center; gap:10px;
+  }
+
+  /* "Practice" tag on rounds in the History lists (these rounds are never counted in any stat or graph) */
+  .sr-prac{
+    display:inline-block; margin-left:8px; padding:2px 7px; border-radius:999px; vertical-align:middle;
+    font-size:9.5px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; line-height:1.3;
+    background:color-mix(in srgb, var(--ink-dim) 16%, transparent); color:var(--ink-dim);
   }

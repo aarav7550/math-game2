@@ -46,6 +46,14 @@ function sessionLevelInfo(s){
   };
 }
 
+// Real rounds + practice rounds, oldest -> newest. Used ONLY for the session LISTS below.
+// Graphs, stat cards and skill cards keep using `sessions`, so practice never touches any numbers.
+function allRounds(){
+  const prac = (typeof practiceSessions !== 'undefined' && Array.isArray(practiceSessions) ? practiceSessions : [])
+    .map(p => p.practice ? p : Object.assign({}, p, { practice: true }));
+  return sessions.concat(prac).sort((a,b) => a.date - b.date);
+}
+
 function trendPointsFor(list){
   return list.map(s => ({ ts: s.date, val: s.avgTime, acc: s.accuracy }));
 }
@@ -65,7 +73,7 @@ function sessionRowHtml(s, withSkill){
     : '';
   const line1 = '<div class="sr-line1">'
     + (withSkill ? '<div class="sr-cell sr-skill">' + (historySkillLabels[s.skill] || s.skill) + '</div>' : '')
-    + '<div class="sr-cell sr-time">' + fmtTimeLabel(s.date) + '</div>'
+    + '<div class="sr-cell sr-time">' + fmtTimeLabel(s.date) + (s.practice ? '<span class="sr-prac">Practice</span>' : '') + '</div>'
     + '</div>';
   const line2 = '<div class="sr-line2">'
     + levelCell
@@ -242,13 +250,14 @@ function renderHistSkillGrid(){
 
 function renderRecentSessions(){
   const seeAll = document.getElementById('btnSeeFullHistory');
-  if(sessions.length === 0){
+  const rounds = allRounds();
+  if(rounds.length === 0){
     sessionsListEl.innerHTML = '<div class="empty-list-note">No rounds played yet — finish a round to see it here.</div>';
     seeAll.style.display = 'none';
     return;
   }
   seeAll.style.display = 'block';
-  sessionsListEl.innerHTML = groupedRowsHtml(sessions.slice(-10).reverse(), true);
+  sessionsListEl.innerHTML = groupedRowsHtml(rounds.slice(-10).reverse(), true);
 }
 
 function renderHistory(){
@@ -301,7 +310,8 @@ function renderSkillDetail(){
 
   renderTrendCard(skdEls, trendPointsFor(list));
 
-  if(list.length === 0){
+  const rows = allRounds().filter(s => s.skill === key);
+  if(rows.length === 0){
     skdListEl.innerHTML = '';
     skdPaginationEl.innerHTML = '';
     skdEmptyNote.style.display = 'block';
@@ -309,9 +319,9 @@ function renderSkillDetail(){
     return;
   }
   skdEmptyNote.style.display = 'none';
-  const pages = Math.max(1, Math.ceil(list.length / FULL_PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(rows.length / FULL_PAGE_SIZE));
   skdPage = Math.min(Math.max(1, skdPage), pages);
-  const slice = list.slice().reverse().slice((skdPage - 1) * FULL_PAGE_SIZE, skdPage * FULL_PAGE_SIZE);
+  const slice = rows.slice().reverse().slice((skdPage - 1) * FULL_PAGE_SIZE, skdPage * FULL_PAGE_SIZE);
   skdListEl.innerHTML = groupedRowsHtml(slice, false);
   skdPaginationEl.innerHTML = pagerHtml(skdPage, pages);
 }
@@ -345,7 +355,8 @@ let fullPage = 1;
 
 function renderFullHistory(){
   closeLevelPop();
-  const total = sessions.length;
+  const rounds = allRounds();
+  const total = rounds.length;
   if(total === 0){
     fullListEl.innerHTML = '';
     fullPaginationEl.innerHTML = '';
@@ -356,7 +367,7 @@ function renderFullHistory(){
   fullEmptyEl.style.display = 'none';
   const pages = Math.max(1, Math.ceil(total / FULL_PAGE_SIZE));
   fullPage = Math.min(Math.max(1, fullPage), pages);
-  const slice = sessions.slice().reverse().slice((fullPage - 1) * FULL_PAGE_SIZE, fullPage * FULL_PAGE_SIZE);
+  const slice = rounds.slice().reverse().slice((fullPage - 1) * FULL_PAGE_SIZE, fullPage * FULL_PAGE_SIZE);
   fullCountNoteEl.textContent = total + (total === 1 ? ' session total' : ' sessions total');
   fullListEl.innerHTML = groupedRowsHtml(slice, true);
   fullPaginationEl.innerHTML = pagerHtml(fullPage, pages);

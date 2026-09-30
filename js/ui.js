@@ -134,7 +134,7 @@ const SKILL_DESC = { half:'Split a number in two', x2:'Double it', x3:'Triple it
 const SKILL_COLOR = { half:'#3B6FE0', x2:'#1F9D6C', x3:'#DB8B1E', add:'#A6459B' };
 
 function renderDashboardStats(){
-  const streak = getCurrentStreak();
+  const streak = computeHomeStreak();
   document.getElementById('streakNum').textContent = streak > 0 ? (streak + ' 🔥') : String(streak);
 
   document.getElementById('statToday').textContent = String(getTodayQuestionCount());
@@ -225,6 +225,23 @@ function renderSkillCards(){
     `;
     grid.appendChild(card);
   });
+}
+
+// Streak = consecutive days with at least one real (non-practice) round. If you haven't played
+// TODAY yet the streak is still alive as long as you played yesterday — it only resets to 0 once
+// a whole day has been missed. Counted here from `sessions` so it doesn't depend on storage.js.
+function computeHomeStreak(){
+  const dayKey = (ts) => { const d = new Date(ts); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+  const played = new Set(sessions.map(s => dayKey(s.date)));
+  const now = new Date();
+  let cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if(!played.has(cursor.getTime())) cursor.setDate(cursor.getDate() - 1); // not played today yet -> start from yesterday
+  let streak = 0;
+  while(played.has(cursor.getTime())){
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
 }
 
 function renderHomeDashboard(){
@@ -568,9 +585,7 @@ function toggleNote(btn){
 window.toggleNote = toggleNote;
 document.addEventListener('mouseover', (e) => {
   const btn = e.target.closest('.info-btn');
-  if(btn){ positionNote(btn); return; }
-  const row = e.target.closest('.dm-practice'); // hovering the "Practice mode" label also shows its note
-  if(row) positionNote(row.querySelector('.info-btn'));
+  if(btn) positionNote(btn);
 });
 window.addEventListener('resize', () => {
   document.querySelectorAll('.info-note.open').forEach(n => positionNote(n.closest('.info-btn')));
