@@ -1216,22 +1216,41 @@
   }
   .sr-prac-cell{ display:none; }
 
-  /* Desktop: a small chip on the row's top edge (doesn't touch the column layout) */
+  /* ---- CHIP STYLE: a small chip sitting on the row's top edge (doesn't touch the column layout).
+     Always used on desktop. On mobile it is only used if <html> has the class "prac-chip"
+     (that's the preview switch — see the note in the reply). ---- */
   @media (min-width:861px){
     .session-row.is-practice .sr-prac-cell{ display:block; position:absolute; top:-9px; right:14px; overflow:visible; }
     .session-row.is-practice .sr-prac{ background:var(--card); border:1px solid var(--line); height:17px; }
+    /* the chip pokes 9px above the row, so rows need more air between them than the old 8px */
+    .sessions-list{ gap:20px; }
   }
+  html.prac-chip .session-row.is-practice .sr-prac-cell{ display:block; position:absolute; top:-9px; right:14px; overflow:visible; }
+  html.prac-chip .session-row.is-practice .sr-prac{ background:var(--card); border:1px solid var(--line); height:17px; }
+  html.prac-chip #view-history .sessions-list,
+  html.prac-chip #view-history-skill .sessions-list,
+  html.prac-chip #view-history-full .sessions-list{ gap:20px; }
 
-  /* Mobile: the tag starts in the same column as the "avg" value below it */
+  /* ---- COLUMN STYLE (mobile default): tag sits on line 1, and the word "Practice" itself starts
+     in the same column as the "avg" value below it. The pill's 8px side padding is pulled back with a
+     negative margin so the TEXT (not the box) lines up. ---- */
   @media (max-width:860px){
-    .session-row.is-practice .sr-prac-cell{ display:block; overflow:visible; align-self:center; }
-    #view-history .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
-    #view-history-full .session-row.is-practice .sr-line1 .sr-time{ grid-column:2; }
-    #view-history-full .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
-    #view-history-skill .session-row.is-practice .sr-line1{
+    html:not(.prac-chip) .session-row.is-practice .sr-prac-cell{ display:block; overflow:visible; align-self:center; }
+    html:not(.prac-chip) .session-row.is-practice .sr-prac{ margin-left:-8px; }
+
+    /* Overview: time used to span columns 2-4 and got pushed to its own row by the tag. Give it column 2 only. */
+    html:not(.prac-chip) #view-history .session-row.is-practice .sr-line1 .sr-time{ grid-column:2; }
+    html:not(.prac-chip) #view-history .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
+
+    /* Full History */
+    html:not(.prac-chip) #view-history-full .session-row.is-practice .sr-line1 .sr-time{ grid-column:2; }
+    html:not(.prac-chip) #view-history-full .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
+
+    /* Skill Detail (line 1 is normally a plain block, so it becomes a grid only for practice rows) */
+    html:not(.prac-chip) #view-history-skill .session-row.is-practice .sr-line1{
       display:grid; grid-template-columns:5.1em 3.3em 3.92em 5.1em; justify-content:space-between;
       column-gap:6px; align-items:center; font-size:clamp(11px, 3.4vw, 13.5px);
     }
-    #view-history-skill .session-row.is-practice .sr-line1 .sr-time{ grid-column:1 / 3; }
-    #view-history-skill .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
+    html:not(.prac-chip) #view-history-skill .session-row.is-practice .sr-line1 .sr-time{ grid-column:1 / 3; }
+    html:not(.prac-chip) #view-history-skill .session-row.is-practice .sr-prac-cell{ grid-column:3; grid-row:1; }
   }
