@@ -46,18 +46,7 @@ document.addEventListener('click', () => moreMenuDropdown.classList.remove('open
 // About us and Report a bug are static pages wired in Step 6.
 
 // ---------- greeting + display name (mobile widget + desktop variant) ----------
-const GREETING_MESSAGES = {
-  morning:   ['Good morning', 'Rise and shine', 'Early bird'],
-  afternoon: ['Good afternoon', 'Back for more', 'Ready to go fast'],
-  evening:   ['Good evening', 'Evening warm-up', "Let's beat yesterday"],
-  night:     ['Burning the midnight oil', 'Night owl', 'Still sharp']
-};
-function pickGreeting(){
-  const h = new Date().getHours();
-  const bucket = h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : h >= 17 && h < 21 ? 'evening' : 'night';
-  const pool = GREETING_MESSAGES[bucket];
-  return pool[Math.floor(Math.random() * pool.length)];
-}
+// Greeting messages + pickGreeting() live in js/greetings.js
 const greetingLine = pickGreeting(); // chosen once per page load
 
 const PENCIL_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
