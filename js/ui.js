@@ -25,9 +25,9 @@ const DIFFICULTY_PRESETS = {
   },
   add: {
     veryeasy: { min: 1, max: 99, count: 2, secs: 9 },
-    easy: { min: 1, max: 999, count: 2, secs: 20 },
+    easy: { min: 1, max: 999, count: 2, secs: 15 },
     difficult: { min: 1, max: 999, count: 3, secs: 25 },
-    verydifficult: { min: 1, max: 9999, count: 4, secs: 35 }
+    verydifficult: { min: 1, max: 9999, count: 4, secs: 30 }
   }
 };
 // Custom ranges have no preset of their own, so they borrow the Difficult level's timer.
