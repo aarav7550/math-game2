@@ -12,7 +12,7 @@
 //  afternoon -> 12pm to 5pm
 //  evening   -> 5pm to 9pm
 //  night     -> 9pm to 5am
-//  anytime   -> mixed in with whichever time-of-day list is active
+//  anytime   -> used 40% of the time (see TIME_BASED_CHANCE at the bottom)
 // ============================================================
 
 const GREETING_MESSAGES = {
@@ -64,11 +64,19 @@ const GREETING_MESSAGES = {
   ]
 };
 
+// How often a time-of-day greeting is used vs an "anytime" one (6 : 4).
+// Change this one number to shift the balance, e.g. 0.7 for 70% time-based.
+const TIME_BASED_CHANCE = 0.6;
+
 // Picks one greeting. Called once per page load from ui.js.
 function pickGreeting(){
   const h = new Date().getHours();
   const bucket = h >= 5 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : h >= 17 && h < 21 ? 'evening' : 'night';
-  const pool = (GREETING_MESSAGES[bucket] || []).concat(GREETING_MESSAGES.anytime || []);
+  const timeList = GREETING_MESSAGES[bucket] || [];
+  const anyList = GREETING_MESSAGES.anytime || [];
+  // choose which list first, so the list sizes don't skew the ratio
+  const useTime = timeList.length && (!anyList.length || Math.random() < TIME_BASED_CHANCE);
+  const pool = useTime ? timeList : anyList;
   if(!pool.length) return 'Hello';
   return pool[Math.floor(Math.random() * pool.length)];
 }

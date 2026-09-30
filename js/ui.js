@@ -70,24 +70,45 @@ function renderGreeting(){
       el.setAttribute('aria-label', 'Set your name');
     }
   });
+  if(window.updateGreetingScroll) window.updateGreetingScroll();
 }
 renderGreeting();
 
-// As the page scrolls, the mobile greeting name shrinks down to the message's size.
+// Scroll effect (mobile + desktop): as the Home screen scrolls, the name shrinks until it is the
+// same size as the greeting line, then fades out just before it leaves the top of the screen.
+// It is computed from the scroll position, so scrolling back up reverses both effects.
 (function(){
-  if(window.matchMedia('(min-width:641px)').matches) return;
-  const NAME_MAX = 30, NAME_MIN = 19, SHRINK_DISTANCE = 90;
+  const view = document.getElementById('view-home');
+  const SHRINK_DISTANCE = 110;  // px of scrolling over which the name shrinks to greeting size
+  const FADE_START = 70;        // name starts fading when its bottom is this close to the top edge
+  const FADE_END = 8;           // ...and is fully invisible at this distance
+  const pairs = [ [greetText, greetName], [dgreetText, dgreetName] ];
   let ticking = false;
+
   function apply(){
-    const y = Math.max(0, Math.min(window.scrollY, SHRINK_DISTANCE));
-    const scale = 1 - (y / SHRINK_DISTANCE) * (1 - NAME_MIN / NAME_MAX);
-    greetName.style.transform = 'scale(' + scale.toFixed(3) + ')';
     ticking = false;
+    const y = Math.max(0, Math.min(view.scrollTop, SHRINK_DISTANCE));
+    const viewTop = view.getBoundingClientRect().top;
+    pairs.forEach(([msg, name]) => {
+      if(!name.offsetParent) return;                       // hidden variant (mobile vs desktop)
+      if(name.classList.contains('unset')){                // "set a name" pill: leave it alone
+        name.style.transform = ''; name.style.opacity = ''; return;
+      }
+      const target = parseFloat(getComputedStyle(msg).fontSize) / parseFloat(getComputedStyle(name).fontSize);
+      const scale = 1 - (y / SHRINK_DISTANCE) * (1 - target);
+      name.style.transform = 'scale(' + scale.toFixed(3) + ')';
+      // fade based on where the (already shrunk) name sits relative to the top of the screen
+      const gap = name.getBoundingClientRect().bottom - viewTop;
+      const fade = Math.max(0, Math.min(1, (gap - FADE_END) / (FADE_START - FADE_END)));
+      name.style.opacity = fade.toFixed(3);
+    });
   }
+  function schedule(){ if(!ticking){ requestAnimationFrame(apply); ticking = true; } }
+
+  view.addEventListener('scroll', schedule, {passive:true});
+  window.addEventListener('resize', schedule);
+  window.updateGreetingScroll = apply;   // renderGreeting() calls this after the name changes
   apply();
-  document.getElementById('view-home').addEventListener('scroll', () => {
-    if(!ticking){ requestAnimationFrame(apply); ticking = true; }
-  }, {passive:true});
 })();
 
 const nameOverlay = document.getElementById('nameOverlay');
