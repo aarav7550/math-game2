@@ -76,6 +76,18 @@
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const fwd = dir === 'fwd';
+
+    // Desktop (same 641px breakpoint as style.css): the old gentle style. Only the NEW screen moves,
+    // a short slide with no fade, and the old screen is simply gone, so nothing can flash.
+    if(window.matchMedia('(min-width:641px)').matches){
+      nv.animate(
+        [{ transform:'translateX(' + (fwd ? 32 : -32) + 'px)' }, { transform:'none' }],
+        { duration: SLIDE_MS, easing: SLIDE_EASE }
+      );
+      return;
+    }
+
+    // Mobile: full stack slide (both screens visible while it runs)
     const top = fwd ? nv : pv;
     const under = fwd ? pv : nv;
     pv.classList.add(fwd ? 'vt-under' : 'vt-top');
