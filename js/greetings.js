@@ -66,7 +66,7 @@ const GREETING_MESSAGES = {
 
 // How often a time-of-day greeting is used vs an "anytime" one (6 : 4).
 // Change this one number to shift the balance, e.g. 0.7 for 70% time-based.
-const TIME_BASED_CHANCE = 0.6;
+const TIME_BASED_CHANCE = 0.7;
 
 // Picks one greeting. Called once per page load from ui.js.
 function pickGreeting(){
