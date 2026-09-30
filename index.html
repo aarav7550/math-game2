@@ -167,6 +167,32 @@
       </div>
     </div>
 
+    <!-- challenge box: last item on Home -->
+    <div class="challenge-box">
+      <div class="cb-left">
+        <div class="cb-icon">
+          <svg viewBox="15 14 34 32" fill="currentColor">
+            <polygon points="37.6559448,38.0292358 35.3612671,35.7345581 33.5475464,37.2692871 36.184082,39.5012207 "/>
+            <polygon points="20.7426758,35.2585449 20.7429199,35.2583008 19.9790039,34.4943848 18.5649414,35.9089355 27.050293,44.3942871 28.4648438,42.9802246 27.7009277,42.2163086 27.7006836,42.2165527 "/>
+            <polygon points="39.5356445,22.0095215 40.949707,23.423584 26.3432617,38.0300293 27.8139648,39.5007324 45.25,24.7473145 47.5961914,15.3630371 38.2119141,17.7092285 23.4584961,35.1452637 24.9291992,36.6159668 "/>
+            <polygon points="39.0698853,36.6150513 40.5424805,35.142334 38.6741943,32.9313965 36.8931885,34.4383545 "/>
+            <polygon points="22.8730469,23.2463379 24.2871094,21.8322754 28.520874,26.06604 30.6873169,23.5056152 25.784668,17.7111816 16.4047852,15.3640137 18.7519531,24.7438965 25.0963135,30.1132202 27.2246704,27.5979614 "/>
+            <rect x="34.4850082" y="38.4443932" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -16.0335941 40.1803932)" width="12.0004444" height="2.0001316"/>
+            <rect x="14.5650234" y="42.3941536" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -25.9539566 26.1301823)" width="7.999836" height="4.0002632"/>
+            <rect x="43.4349251" y="40.3943672" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -18.0838814 45.1302223)" width="4.0002632" height="7.999836"/>
+          </svg>
+        </div>
+        <div class="cb-text">
+          <div class="cb-title">Challenge a friend</div>
+          <div class="cb-desc">Same questions, same settings, share a code.</div>
+        </div>
+      </div>
+      <div class="cb-actions">
+        <button class="cb-btn ghost" id="challengeEnterBtn" type="button">Enter code</button>
+        <button class="cb-btn" id="challengeCreateBtn" type="button">Create</button>
+      </div>
+    </div>
+
    </div>
   </div>
 
@@ -319,34 +345,102 @@
 
   <!-- CREATE CHALLENGE -->
   <div class="view" id="view-challenge">
-    <div class="history-head" style="width:100%; max-width:800px;">
-      <button class="back-link" id="btnChallengeBack">← Back</button>
-      <h2>Create a challenge</h2>
-      <div class="history-actions">
-        <button class="btn-primary" id="btnChallengeGenerate" style="padding:9px 18px; font-size:13.5px;">Generate code</button>
-      </div>
+    <div class="cc-page">
+  <div class="cc-topbar">
+    <div class="cc-topbar-inner" style="width:100%;">
+      <button class="back-link" id="btnChallengeBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+      </button>
+      <div class="cc-topbar-title">Create a challenge</div>
+      <div style="width:60px;"></div>
     </div>
-    <div class="challenge-body">
-      <div class="challenge-sidebar">
-        <div>
-          <div class="challenge-section-title">Skills to include</div>
-          <div id="challengeSkillsList" class="challenge-skills-list"></div>
-        </div>
-        <div>
-          <div class="challenge-section-title">Number of questions</div>
-          <div class="duration-toggle" id="challengeDurationToggle">
-            <button data-n="15" class="active">15</button>
-            <button data-n="30">30</button>
-            <button data-n="50">50</button>
-          </div>
-        </div>
-        <div class="start-blocked-msg" id="challengeCreateBlockedMsg" style="display:none;">Include at least one skill.</div>
-      </div>
-      <div class="challenge-panel">
-        <div class="challenge-section-title">Per-game settings</div>
-        <div id="challengeSkillConfigs" class="challenge-skill-configs"></div>
-      </div>
+  </div>
+
+  <div class="cc-page-sub">Pick the skills to include, set a difficulty for each, and share the code — whoever plays it gets your exact set of questions.</div>
+
+  <div class="cc-section-label">Skills to include</div>
+  <div class="cc-skill-toggle-grid" id="ccSkillGrid">
+    <button class="cc-skill-toggle on" data-skill="half">
+      <span class="cc-st-icon">÷2
+        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+      </span>
+      <span class="cc-st-body">
+        <div class="cc-st-name">Halving</div>
+        <div class="cc-st-desc">Split a number in two</div>
+      </span>
+    </button>
+    <button class="cc-skill-toggle on" data-skill="x2">
+      <span class="cc-st-icon">×2
+        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+      </span>
+      <span class="cc-st-body">
+        <div class="cc-st-name">× 2</div>
+        <div class="cc-st-desc">Double it</div>
+      </span>
+    </button>
+    <button class="cc-skill-toggle" data-skill="x3">
+      <span class="cc-st-icon">×3
+        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+      </span>
+      <span class="cc-st-body">
+        <div class="cc-st-name">× 3</div>
+        <div class="cc-st-desc">Triple it</div>
+      </span>
+    </button>
+    <button class="cc-skill-toggle" data-skill="add">
+      <span class="cc-st-icon">+
+        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
+      </span>
+      <span class="cc-st-body">
+        <div class="cc-st-name">Additions</div>
+        <div class="cc-st-desc">Add several numbers</div>
+      </span>
+    </button>
+  </div>
+
+  <div class="cc-section-label" id="ccConfigSectionLabel">Per-skill difficulty</div>
+  <div class="cc-config-stack" id="ccConfigStack">
+    <!-- config cards injected by JS -->
+  </div>
+  <div class="cc-empty-note" id="ccEmptyNote" style="display:none;">Turn on at least one skill above to configure it.</div>
+
+  <div class="cc-section-label cc-qcount-section-label">Number of questions</div>
+  <div class="cc-qcount-card">
+    <div class="cc-qcount-label">Questions in this challenge</div>
+    <div class="cc-qcount-bar" id="ccQcountBar">
+      <button class="cc-qcount-opt active" data-n="15">15</button>
+      <button class="cc-qcount-opt" data-n="30">30</button>
+      <button class="cc-qcount-opt" data-n="50">50</button>
+      <button class="cc-qcount-opt custom" data-n="custom" id="ccQcountCustomBtn" title="Custom" aria-label="Custom number of questions">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        </svg>
+        <input type="number" class="cc-qcount-inline-input" id="ccQcountInlineValue" min="1" placeholder="—">
+      </button>
     </div>
+  </div>
+
+  <div class="cc-blocked-msg" id="ccBlockedMsg">Include at least one skill to generate a challenge.</div>
+    </div>
+  <div class="cc-summary-strip">
+    <div class="cc-summary-left">
+      <div class="cc-sl-tag">Your challenge</div>
+      <div class="cc-sl-title" id="ccSummaryTitle">2 skills selected</div>
+      <div class="cc-sl-desc" id="ccSummaryDesc">Halving, × 2</div>
+    </div>
+    <div class="cc-summary-right">
+      <div class="cc-summary-est">
+        <div class="num" id="ccSummaryEst">1m 0s</div>
+        <div class="lbl">Est. time</div>
+      </div>
+      <button class="cc-btn-generate" id="ccBtnGenerate" disabled>
+        Generate code
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
   </div>
 
   <!-- HISTORY -->
@@ -557,6 +651,7 @@
 <script src="js/greetings.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/history.js"></script>
+<script src="js/challenge.js"></script>
 <script src="js/popups.js"></script>
 <script src="js/nav.js"></script>
 

@@ -1,0 +1,401 @@
+// ============================================================
+// CHALLENGE.JS — the Create Challenge screen (pick skills + difficulty + question
+// count, then generate a shareable code).
+//
+// Uses from other files (all loaded before this one):
+//   ui.js       DIFFICULTY_PRESETS, presetLabel(), presetNote(), CUSTOM_NOTE, DIFF_LABELS, showGeneratedCode()
+//   storage.js  skillConfig, DEFAULT_CONFIG, randomSeed(), buildChallengePayload(), encodeChallengeCode()
+//   skills.js   SKILL_ORDER        game.js  skillDisplayLabels (defined in ui.js)
+//
+// Everything is wrapped in one function so its names (config, selected ...) can't clash
+// with globals. All of this screen's ids/classes are prefixed cc / cc- because the
+// Difficulty popup uses similar names (qcountBar, diff-opt, info-btn ...).
+// ============================================================
+(function(){
+  const view = document.getElementById('view-challenge');
+  if(!view) return;
+
+  const EST_SECONDS_PER_Q = 8;
+  const SKILL_ORDER_LOCAL = SKILL_ORDER.slice();
+
+  const grid = document.getElementById('ccSkillGrid');
+  const configStack = document.getElementById('ccConfigStack');
+  const emptyNote = document.getElementById('ccEmptyNote');
+  const btnGenerate = document.getElementById('ccBtnGenerate');
+  const blockedMsg = document.getElementById('ccBlockedMsg');
+  const summaryTitle = document.getElementById('ccSummaryTitle');
+  const summaryDesc = document.getElementById('ccSummaryDesc');
+  const summaryEst = document.getElementById('ccSummaryEst');
+  const qcountBar = document.getElementById('ccQcountBar');
+  const qcountCustomBtn = document.getElementById('ccQcountCustomBtn');
+  const qcountInline = document.getElementById('ccQcountInlineValue');
+  const strip = view.querySelector('.cc-summary-strip');
+
+  // ---------- draft state (never touches the player's own saved settings) ----------
+  let selected = new Set();
+  let config = {};
+  let questionCount = 15;
+
+  function freshDraft(){
+    selected = new Set(['half', 'x2']);
+    config = {};
+    SKILL_ORDER_LOCAL.forEach(k => {
+      // the custom editor starts from the player's last-used numbers for that skill (same as the Difficulty popup)
+      const saved = skillConfig[k] || DEFAULT_CONFIG[k];
+      config[k] = {
+        level: 'easy',
+        custom: { min: saved.min, max: saved.max, parity: saved.parity || 'any', count: saved.count || 2 }
+      };
+    });
+    questionCount = 15;
+  }
+
+  // ---------- per-skill settings cards ----------
+  function buildConfigCard(skillId){
+    const c = config[skillId];
+    const isAdd = skillId === 'add';
+    const isCustom = c.level === 'custom';
+    const val = (v) => (v === null || v === undefined || Number.isNaN(v)) ? '' : v;
+
+    const pillHtml = (level) => `
+      <button class="cc-diff-opt ${c.level === level ? 'active' : ''}" data-level="${level}">
+        <div class="cc-do-name">${DIFF_LABELS[level]}</div>
+        <div class="cc-do-range">${presetLabel(skillId, level)}</div>
+        <span class="cc-info-btn">
+          <span class="cc-info-dot">i</span>
+          <span class="cc-info-note"><span class="cc-in-arrow"></span>${presetNote(skillId, level)}</span>
+        </span>
+      </button>`;
+
+    let rows = `
+      <div class="cc-config-row">
+        <label>Range</label>
+        <div class="cc-range-inputs">
+          <input type="number" class="cc-range-input" data-field="min" value="${val(c.custom.min)}">
+          <span class="dim">–</span>
+          <input type="number" class="cc-range-input" data-field="max" value="${val(c.custom.max)}">
+        </div>
+      </div>`;
+
+    if(!isAdd){
+      rows += `
+      <div class="cc-config-row">
+        <label>Type</label>
+        <div class="cc-segmented cc-parity-seg" data-seg="parity">
+          <button data-v="any" class="${c.custom.parity === 'any' ? 'active' : ''}">Any</button>
+          <button data-v="even" class="${c.custom.parity === 'even' ? 'active' : ''}">Even</button>
+          <button data-v="odd" class="${c.custom.parity === 'odd' ? 'active' : ''}">Odd</button>
+        </div>
+      </div>`;
+    } else {
+      const countIsCustomVal = ![2, 3, 4].includes(c.custom.count);
+      rows += `
+      <div class="cc-config-row">
+        <label>How many</label>
+        <div class="cc-segmented cc-count-seg" data-seg="count">
+          <button data-v="2" class="${c.custom.count === 2 ? 'active' : ''}">2</button>
+          <button data-v="3" class="${c.custom.count === 3 ? 'active' : ''}">3</button>
+          <button data-v="4" class="${c.custom.count === 4 ? 'active' : ''}">4</button>
+          <button data-v="custom" class="cc-count-custom-btn ${countIsCustomVal ? 'active editing' : ''}" title="Custom count" aria-label="Custom count">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            <input type="number" class="cc-count-custom-input" min="1" style="display:${countIsCustomVal ? 'block' : 'none'};" value="${countIsCustomVal ? val(c.custom.count) : ''}">
+          </button>
+        </div>
+      </div>`;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'cc-config-card';
+    card.dataset.skill = skillId;
+    card.innerHTML = `
+      <div class="cc-config-head">
+        <div class="cc-config-title">${skillDisplayLabels[skillId]}</div>
+        <button class="cc-config-reset" data-reset="${skillId}">Reset</button>
+      </div>
+      <div class="cc-diff-rows">
+        <div class="cc-diff-row pair">${pillHtml('veryeasy')}${pillHtml('easy')}</div>
+        <div class="cc-diff-row pair">${pillHtml('difficult')}${pillHtml('verydifficult')}</div>
+        <div class="cc-diff-row single">
+          <button class="cc-diff-opt ${isCustom ? 'active' : ''}" data-level="custom">
+            <div class="cc-do-name">Custom</div>
+            <div class="cc-do-range">Set your own</div>
+            <span class="cc-info-btn">
+              <span class="cc-info-dot">i</span>
+              <span class="cc-info-note"><span class="cc-in-arrow"></span>${CUSTOM_NOTE[skillId]}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div class="cc-custom-editor ${isCustom ? 'show' : ''}">
+        <div class="cc-config-rows">${rows}</div>
+      </div>`;
+    return card;
+  }
+
+  function renderConfigCards(){
+    configStack.innerHTML = '';
+    emptyNote.style.display = selected.size === 0 ? 'block' : 'none';
+    SKILL_ORDER_LOCAL.forEach(id => {
+      if(selected.has(id)) configStack.appendChild(buildConfigCard(id));
+    });
+  }
+
+  // Re-render ONE card in place so the rest of the stack never flickers.
+  function refreshOneCard(skillId){
+    const old = configStack.querySelector(`.cc-config-card[data-skill="${skillId}"]`);
+    if(old) old.replaceWith(buildConfigCard(skillId));
+  }
+
+  // ---------- events: bound ONCE on stable parents (delegation), never per card ----------
+  configStack.addEventListener('click', (e) => {
+    const infoBtn = e.target.closest('.cc-info-btn');
+    if(infoBtn){ toggleNote(infoBtn); return; }   // the (i) sits inside the difficulty button, so check it first
+
+    const card = e.target.closest('.cc-config-card');
+    if(!card) return;
+    const skillId = card.dataset.skill;
+
+    const diffOpt = e.target.closest('.cc-diff-opt');
+    if(diffOpt){
+      config[skillId].level = diffOpt.dataset.level;
+      refreshOneCard(skillId);
+      updateFooter();
+      return;
+    }
+
+    const parityBtn = e.target.closest('[data-seg="parity"] button');
+    if(parityBtn){
+      card.querySelectorAll('[data-seg="parity"] button').forEach(b => b.classList.remove('active'));
+      parityBtn.classList.add('active');
+      config[skillId].custom.parity = parityBtn.dataset.v;
+      return;
+    }
+
+    const countBtn = e.target.closest('[data-seg="count"] button');
+    if(countBtn){
+      if(countBtn.classList.contains('cc-count-custom-btn')){
+        const input = countBtn.querySelector('.cc-count-custom-input');
+        if(countBtn.classList.contains('editing')){ input.focus(); return; }
+        card.querySelectorAll('[data-seg="count"] button').forEach(b => b.classList.remove('active'));
+        countBtn.classList.add('active', 'editing');
+        input.style.display = 'block';
+        input.value = '';
+        input.focus();
+        input.select();
+        hideBarWhileEditing(input);
+        return;
+      }
+      card.querySelectorAll('[data-seg="count"] button').forEach(b => {
+        b.classList.remove('active');
+        if(b.classList.contains('cc-count-custom-btn')){
+          b.classList.remove('editing');
+          b.querySelector('.cc-count-custom-input').style.display = 'none';
+        }
+      });
+      countBtn.classList.add('active');
+      config[skillId].custom.count = parseInt(countBtn.dataset.v, 10);
+      return;
+    }
+
+    if(e.target.closest('.cc-count-custom-input')){ e.stopPropagation(); return; }
+
+    const resetBtn = e.target.closest('[data-reset]');
+    if(resetBtn){
+      config[skillId].level = 'easy';
+      refreshOneCard(skillId);
+      updateFooter();
+    }
+  });
+
+  configStack.addEventListener('input', (e) => {
+    const rangeInput = e.target.closest('.cc-range-input');
+    if(rangeInput){
+      const skillId = rangeInput.closest('.cc-config-card').dataset.skill;
+      const v = parseInt(rangeInput.value, 10);
+      // an empty/garbage field is stored as null so "Generate" stays blocked until it is filled in
+      config[skillId].custom[rangeInput.dataset.field] = Number.isNaN(v) ? null : v;
+      updateFooter();
+      return;
+    }
+    const countInput = e.target.closest('.cc-count-custom-input');
+    if(countInput){
+      const skillId = countInput.closest('.cc-config-card').dataset.skill;
+      const v = parseInt(countInput.value, 10);
+      if(v > 0) config[skillId].custom.count = v;
+    }
+  });
+
+  grid.addEventListener('click', (e) => {
+    const tile = e.target.closest('.cc-skill-toggle');
+    if(!tile) return;
+    const id = tile.dataset.skill;
+    if(selected.has(id)){ selected.delete(id); tile.classList.remove('on'); }
+    else { selected.add(id); tile.classList.add('on'); }
+    renderConfigCards();
+    updateFooter();
+  });
+
+  // ---------- (i) info popovers: fixed-position, clamped to the screen ----------
+  function positionNote(btn){
+    const note = btn.querySelector('.cc-info-note');
+    const rect = btn.getBoundingClientRect();
+    const noteWidth = 200;
+    let left = rect.left + rect.width / 2 - noteWidth / 2;
+    left = Math.max(10, Math.min(left, window.innerWidth - noteWidth - 10));
+    note.style.left = left + 'px';
+    note.style.top = (rect.bottom + 10) + 'px';
+    const arrow = note.querySelector('.cc-in-arrow');
+    arrow.style.left = ((rect.left + rect.width / 2) - left - 5) + 'px';
+    arrow.style.marginLeft = '0';
+  }
+  function toggleNote(btn){
+    const note = btn.querySelector('.cc-info-note');
+    const wasOpen = note.classList.contains('open');
+    view.querySelectorAll('.cc-info-note.open').forEach(n => n.classList.remove('open'));
+    if(!wasOpen){ positionNote(btn); note.classList.add('open'); }
+  }
+  view.addEventListener('mouseover', (e) => {
+    const btn = e.target.closest('.cc-info-btn');
+    if(btn) positionNote(btn);
+  });
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.cc-info-btn')){
+      view.querySelectorAll('.cc-info-note.open').forEach(n => n.classList.remove('open'));
+    }
+  });
+
+  // ---------- question count: 15 / 30 / 50 + pencil that expands into a field ----------
+  // The fixed bottom bar would sit on top of the phone keyboard and cover the field, so it is
+  // removed while a number field in this screen is being edited, then restored on blur.
+  function hideBarWhileEditing(field){
+    if(window.innerWidth > 640) return;
+    strip.style.display = 'none';
+    const restore = () => { strip.style.display = ''; field.removeEventListener('blur', restore); };
+    field.addEventListener('blur', restore);
+  }
+
+  qcountBar.querySelectorAll('.cc-qcount-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      if(opt === qcountCustomBtn){
+        qcountBar.querySelectorAll('.cc-qcount-opt').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active', 'expanded');
+        qcountBar.classList.add('custom-active');
+        qcountInline.focus();
+        hideBarWhileEditing(qcountInline);
+        if(qcountInline.value) questionCount = parseInt(qcountInline.value, 10) || questionCount;
+        updateFooter();
+        return;
+      }
+      qcountBar.querySelectorAll('.cc-qcount-opt').forEach(o => o.classList.remove('active'));
+      qcountCustomBtn.classList.remove('expanded');
+      qcountBar.classList.remove('custom-active');
+      opt.classList.add('active');
+      questionCount = parseInt(opt.dataset.n, 10);
+      updateFooter();
+    });
+  });
+  qcountInline.addEventListener('click', (e) => e.stopPropagation());
+  qcountInline.addEventListener('input', () => {
+    const v = parseInt(qcountInline.value, 10);
+    if(v > 0){ questionCount = v; updateFooter(); }
+  });
+
+  // ---------- bottom bar: summary + Generate ----------
+  function formatEstimate(totalSeconds){
+    const m = Math.floor(totalSeconds / 60), s = totalSeconds % 60;
+    return m === 0 ? `${s}s` : `${m}m ${s}s`;
+  }
+
+  function customIsInvalid(){
+    return SKILL_ORDER_LOCAL.some(k => {
+      if(!selected.has(k) || config[k].level !== 'custom') return false;
+      const { min, max } = config[k].custom;
+      return !(Number.isFinite(min) && Number.isFinite(max) && min < max);   // same rule as the Difficulty popup
+    });
+  }
+
+  function updateFooter(){
+    const n = selected.size;
+    const invalid = n > 0 && customIsInvalid();
+    btnGenerate.disabled = (n === 0) || invalid;
+
+    if(n === 0){
+      blockedMsg.textContent = 'Include at least one skill to generate a challenge.';
+      blockedMsg.classList.add('show');
+      summaryTitle.textContent = 'No skills selected yet';
+      summaryDesc.textContent = 'Turn on a skill above to build your challenge';
+      summaryEst.textContent = '—';
+      return;
+    }
+    if(invalid){
+      blockedMsg.textContent = 'Enter a valid min and max for each custom skill (min below max).';
+      blockedMsg.classList.add('show');
+    } else {
+      blockedMsg.classList.remove('show');
+    }
+    const names = SKILL_ORDER_LOCAL.filter(id => selected.has(id)).map(id => skillDisplayLabels[id]);
+    summaryTitle.textContent = `${n} skill${n > 1 ? 's' : ''} · ${questionCount} questions`;
+    summaryDesc.textContent = names.join(', ');
+    // Question count is fixed however many skills are in the mix, so the estimate only scales with it.
+    summaryEst.textContent = formatEstimate(questionCount * EST_SECONDS_PER_Q);
+  }
+
+  // Turns the picked level (or custom numbers) for one skill into the plain {min,max,parity,count?}
+  // shape the game and the challenge code use. Presets have no parity of their own, so they use 'any'
+  // (a shared challenge must not depend on the creator's personal saved settings).
+  function resolveConfig(skillId){
+    const c = config[skillId];
+    const isAdd = skillId === 'add';
+    if(c.level === 'custom'){
+      const out = { min: c.custom.min, max: c.custom.max, parity: isAdd ? 'any' : c.custom.parity };
+      if(isAdd) out.count = c.custom.count || 2;
+      return out;
+    }
+    const p = DIFFICULTY_PRESETS[skillId][c.level];
+    const out = { min: p.min, max: p.max, parity: 'any' };
+    if(isAdd) out.count = p.count;
+    return out;
+  }
+
+  btnGenerate.addEventListener('click', () => {
+    if(btnGenerate.disabled) return;
+    const included = SKILL_ORDER_LOCAL.filter(k => selected.has(k));
+    if(included.length === 0) return;
+    const cfgBySkill = {};
+    included.forEach(k => { cfgBySkill[k] = resolveConfig(k); });
+    const payload = buildChallengePayload(included, cfgBySkill, questionCount, randomSeed());
+    showGeneratedCode(encodeChallengeCode(payload));   // existing "share this code" popup in ui.js
+  });
+
+  // ---------- keep a focused number field clear of the phone keyboard ----------
+  // Native scroll-into-view isn't reliable in every webview, so scroll this screen's own
+  // scroller (the view itself, not the window) until the field sits ~40% down the visible area.
+  document.addEventListener('focusin', (e) => {
+    const field = e.target;
+    if(!view.contains(field) || !field.matches('input[type="number"], input[type="text"]')) return;
+    setTimeout(() => {
+      const vv = window.visualViewport;
+      const visibleH = vv ? vv.height : window.innerHeight;
+      const delta = field.getBoundingClientRect().top - visibleH * 0.4;
+      view.scrollBy({ top: delta, behavior: 'smooth' });
+    }, 200);
+  });
+
+  // ---------- entry point: Home → "Create" ----------
+  function openChallengeScreen(){
+    freshDraft();
+    grid.querySelectorAll('.cc-skill-toggle').forEach(t => t.classList.toggle('on', selected.has(t.dataset.skill)));
+    qcountBar.querySelectorAll('.cc-qcount-opt').forEach(o => o.classList.remove('active', 'expanded'));
+    qcountBar.classList.remove('custom-active');
+    qcountBar.querySelector('[data-n="15"]').classList.add('active');
+    qcountInline.value = '';
+    strip.style.display = '';
+    renderConfigCards();
+    updateFooter();
+    showView('challenge');
+  }
+  window.openChallengeScreen = openChallengeScreen;
+
+  const homeCreateBtn = document.getElementById('challengeCreateBtn');
+  if(homeCreateBtn) homeCreateBtn.addEventListener('click', openChallengeScreen);
+})();
