@@ -75,32 +75,30 @@ function renderGreeting(){
 renderGreeting();
 
 // Scroll effect (mobile + desktop): as the Home screen scrolls, the name shrinks until it is the
-// same size as the greeting line, then fades out just before it leaves the top of the screen.
-// It is computed from the scroll position, so scrolling back up reverses both effects.
+// same size as the greeting line. It finishes shrinking well before the name reaches the top of
+// the screen. It is computed from the scroll position, so scrolling back up reverses it.
 (function(){
   const view = document.getElementById('view-home');
-  const SHRINK_DISTANCE = 110;  // px of scrolling over which the name shrinks to greeting size
-  const FADE_START = 70;        // name starts fading when its bottom is this close to the top edge
-  const FADE_END = 8;           // ...and is fully invisible at this distance
+  const SHRINK_FRACTION = 0.6;  // shrink finishes after scrolling this fraction of the name's distance from the top
   const pairs = [ [greetText, greetName], [dgreetText, dgreetName] ];
   let ticking = false;
 
   function apply(){
     ticking = false;
-    const y = Math.max(0, Math.min(view.scrollTop, SHRINK_DISTANCE));
     const viewTop = view.getBoundingClientRect().top;
     pairs.forEach(([msg, name]) => {
       if(!name.offsetParent) return;                       // hidden variant (mobile vs desktop)
+      name.style.opacity = '';
       if(name.classList.contains('unset')){                // "set a name" pill: leave it alone
-        name.style.transform = ''; name.style.opacity = ''; return;
+        name.style.transform = ''; return;
       }
+      // where the name sits (from the top of the scroll area) when not scrolled; scaling from the top edge doesn't move it
+      const restTop = name.getBoundingClientRect().top - viewTop + view.scrollTop;
+      const distance = Math.max(1, restTop * SHRINK_FRACTION);
+      const progress = Math.max(0, Math.min(view.scrollTop / distance, 1));
       const target = parseFloat(getComputedStyle(msg).fontSize) / parseFloat(getComputedStyle(name).fontSize);
-      const scale = 1 - (y / SHRINK_DISTANCE) * (1 - target);
+      const scale = 1 - progress * (1 - target);
       name.style.transform = 'scale(' + scale.toFixed(3) + ')';
-      // fade based on where the (already shrunk) name sits relative to the top of the screen
-      const gap = name.getBoundingClientRect().bottom - viewTop;
-      const fade = Math.max(0, Math.min(1, (gap - FADE_END) / (FADE_START - FADE_END)));
-      name.style.opacity = fade.toFixed(3);
     });
   }
   function schedule(){ if(!ticking){ requestAnimationFrame(apply); ticking = true; } }
