@@ -6,30 +6,32 @@
 // Each preset fills range (+ count for additions); parity is left alone.
 const DIFFICULTY_PRESETS = {
   half: {
-    veryeasy: { min: 1, max: 99 },
-    easy: { min: 100, max: 299 },
-    difficult: { min: 100, max: 999 },
-    verydifficult: { min: 1000, max: 9999 }
+    veryeasy: { min: 1, max: 99, secs: 8 },
+    easy: { min: 100, max: 299, secs: 10 },
+    difficult: { min: 100, max: 999, secs: 13 },
+    verydifficult: { min: 1000, max: 9999, secs: 20 }
   },
   x2: {
-    veryeasy: { min: 1, max: 20 },
-    easy: { min: 20, max: 99 },
-    difficult: { min: 100, max: 499 },
-    verydifficult: { min: 500, max: 999 }
+    veryeasy: { min: 1, max: 100, secs: 8 },
+    easy: { min: 100, max: 500, secs: 13 },
+    difficult: { min: 500, max: 1000, secs: 15 },
+    verydifficult: { min: 1000, max: 10000, secs: 17 }
   },
   x3: {
-    veryeasy: { min: 1, max: 15 },
-    easy: { min: 15, max: 33 },
-    difficult: { min: 34, max: 99 },
-    verydifficult: { min: 100, max: 333 }
+    veryeasy: { min: 1, max: 30, secs: 10 },
+    easy: { min: 30, max: 100, secs: 15 },
+    difficult: { min: 100, max: 300, secs: 21 },
+    verydifficult: { min: 300, max: 500, secs: 25 }
   },
   add: {
-    veryeasy: { min: 1, max: 99, count: 2 },
-    easy: { min: 1, max: 99, count: 3 },
-    difficult: { min: 1, max: 999, count: 2 },
-    verydifficult: { min: 1, max: 999, count: 3 }
+    veryeasy: { min: 1, max: 99, count: 2, secs: 9 },
+    easy: { min: 1, max: 999, count: 2, secs: 20 },
+    difficult: { min: 1, max: 999, count: 3, secs: 25 },
+    verydifficult: { min: 1, max: 9999, count: 4, secs: 35 }
   }
 };
+// Custom ranges have no preset of their own, so they borrow the Difficult level's timer.
+const CUSTOM_TIMER_LEVEL = 'difficult';
 const skillDisplayLabels = { half:'Halving', x2:'× 2', x3:'× 3', add:'Additions' };
 
 // ---------- more-options menu (About us / Report a bug) ----------
@@ -648,6 +650,13 @@ function matchingDifficultyForConfig(key, cfg){
     if(matches(presets[diffKey])) return diffKey;
   }
   return 'custom';
+}
+// Seconds allowed per question for this skill + config (used by game.js for the timer bar).
+function timerSecondsForConfig(key, cfg){
+  const level = matchingDifficultyForConfig(key, cfg);
+  const presets = DIFFICULTY_PRESETS[key];
+  const preset = presets[level] || presets[CUSTOM_TIMER_LEVEL];
+  return preset.secs;
 }
 function matchingDifficulty(key){
   return matchingDifficultyForConfig(key, skillConfig[key]);

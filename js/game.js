@@ -121,6 +121,7 @@ function nextQuestion(){
   problemText.classList.remove('shake');
   correctReveal.classList.remove('show');
   updateMeta();
+  state.timerDurationMs = timerSecondsForConfig(skillKey, activeConfig(skillKey)) * 1000;
   state.questionStart = performance.now();
   if(state.practiceMode){
     if(state.perSkillTimer) clearTimeout(state.perSkillTimer); // practice mode: no timer bar, no auto-fail
