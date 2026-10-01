@@ -1599,6 +1599,17 @@
   #view-bug .bug-send{ font-size:15px; }
 }
 
+/* ---- Enter Code on phones: when the keyboard opens/closes the app height changes and the card (centred in the
+   leftover space) used to jump; animating the height makes it glide instead. Phone only. ---- */
+@media (max-width: 640px){
+  #app:has(#view-entercode.active){ transition:height .22s ease-out; }
+}
+
+/* ---- desktop only: the 2px backdrop blur on a full-screen overlay makes popup fades stutter on many GPUs ---- */
+@media (min-width: 641px){
+  .modal-overlay{ -webkit-backdrop-filter:none; backdrop-filter:none; }
+}
+
 /* ---- touchscreens only: no blue tap-flash / text-selection highlight on buttons and cards ---- */
 @media (hover:none) and (pointer:coarse){
   *{ -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }

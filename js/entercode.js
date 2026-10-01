@@ -25,7 +25,7 @@
   const btnView = document.getElementById('ecBtnView');
   const homeEnterBtn = document.getElementById('challengeEnterBtn');
 
-  const FOCUS_DELAY_MS = 700;   // wait after opening the page before the field is focused (slide-in is 300ms)
+  const FOCUS_DELAY_MS = 400;   // wait after opening the page before the field is focused (slide-in is 300ms)
   let focusTimer = 0;
   let busy = false;   // true while the success sweep plays, so a second tap / Enter can't double-submit
 

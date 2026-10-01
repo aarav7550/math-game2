@@ -80,47 +80,58 @@
     }
   });
 
-  // ---------- keep the screen lined up with what is really visible while the keyboard is up ----------
-  // WHY THE WHITE AREA: when you tap the lowest field first, the browser slides the visible area down
-  // (or scrolls the page) to reveal it, but the app is sized to the visible height and stays where it
-  // was, so part of the visible area ends up outside the app = blank white. While a field on this page
-  // is focused we move the app so its top edge always matches the top of the visible area.
-  const vv = window.visualViewport;
-  const appEl = document.getElementById('app');
-  let glued = false, shift = 0, chaseUntil = 0;
-  function unglue(){ glued = false; shift = 0; appEl.style.transform = ''; }
-  function realign(){
-    if(!glued) return;
-    if(!bugView.classList.contains('active')){ unglue(); return; }
-    const off = appEl.getBoundingClientRect().top - vv.offsetTop;   // 0 = already lined up
-    if(Math.abs(off) < 0.5) return;
-    shift -= off;
-    appEl.style.transform = 'translateY(' + shift + 'px)';
-  }
-  function chase(){                                                  // keeps checking while the keyboard slides up
-    realign();
-    if(glued && performance.now() < chaseUntil) requestAnimationFrame(chase);
-  }
-  if(vv && appEl){
-    vv.addEventListener('resize', realign);
-    vv.addEventListener('scroll', realign);
-    window.addEventListener('scroll', realign);
-    bugView.addEventListener('focusin', (e) => {
-      if(window.innerWidth > 640 || !e.target.matches('input, textarea')) return;
-      glued = true;
-      chaseUntil = performance.now() + 900;
-      chase();
-    });
-    bugView.addEventListener('focusout', () => {
-      setTimeout(() => { if(!bugView.contains(document.activeElement)) unglue(); }, 0);
-    });
+  // ---------- phone keyboard: lift the tapped field BEFORE the keyboard opens ----------
+  // WHY THE FLICKER: the keyboard used to open first and hide the field, so the browser scrolled/panned to
+  // reveal it, then our own scroll corrected that, then the app resized (up, down, up). Now the field is
+  // already lifted into the upper part of the screen when the keyboard arrives, so the browser has
+  // nothing to correct and only this one smooth scroll happens.
+  const bugPage = bugView.querySelector('.bug-page');
+  let scrollRaf = 0, lastLift = 0, padTimer = 0;
+
+  function tweenScroll(el, to, ms){
+    cancelAnimationFrame(scrollRaf);
+    const from = el.scrollTop, t0 = performance.now();
+    (function step(){
+      const k = Math.min(1, (performance.now() - t0) / ms);
+      el.scrollTop = from + (to - from) * (1 - Math.pow(1 - k, 3));   // ease-out
+      if(k < 1) scrollRaf = requestAnimationFrame(step);
+    })();
   }
 
-  // Phone keyboard: scroll the focused field into view smoothly (same shared helper as Create / Enter Code)
+  function liftField(field){
+    if(window.innerWidth > 640) return;                               // phones only
+    lastLift = performance.now();
+    clearTimeout(padTimer);
+    const vv = window.visualViewport;
+    const visible = vv ? vv.height : window.innerHeight;
+    const expected = Math.min(visible, window.innerHeight * 0.55);    // the part of the screen that will be left above the keyboard
+    const top = bugView.getBoundingClientRect().top;
+    const delta = field.getBoundingClientRect().top - (top + expected * 0.4);
+    if(Math.abs(delta) < 4) return;
+    let to = Math.max(0, bugView.scrollTop + delta);
+    const room = bugView.scrollHeight - bugView.clientHeight;
+    if(to > room){                                                    // page is still full height, so add temporary room to scroll into
+      const pad = parseFloat(getComputedStyle(bugPage).paddingBottom) || 0;
+      bugPage.style.paddingBottom = (pad + (to - room) + 2) + 'px';
+    }
+    tweenScroll(bugView, to, 180);
+  }
+
+  // a tap fires mousedown just before the field takes focus, i.e. before the keyboard starts opening
+  bugView.addEventListener('mousedown', (e) => {
+    const f = e.target.closest('input, textarea');
+    if(f) liftField(f);
+  });
+  // other ways of reaching a field (keyboard "next" key, etc.)
   bugView.addEventListener('focusin', (e) => {
-    const f = e.target;
-    if(!f.matches('input[type="text"], input[type="email"], textarea')) return;
-    if(window.innerWidth > 640 || typeof window.keepFieldClearOfKeyboard !== 'function') return;
-    window.keepFieldClearOfKeyboard(bugView, f);
+    if(!e.target.matches('input, textarea')) return;
+    if(performance.now() - lastLift < 500) return;
+    liftField(e.target);
+  });
+  // when the keyboard is gone again, remove the temporary extra room
+  bugView.addEventListener('focusout', () => {
+    padTimer = setTimeout(() => {
+      if(!bugView.contains(document.activeElement)) bugPage.style.paddingBottom = '';
+    }, 400);
   });
 })();
