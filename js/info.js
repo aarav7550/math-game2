@@ -80,6 +80,42 @@
     }
   });
 
+  // ---------- keep the screen lined up with what is really visible while the keyboard is up ----------
+  // WHY THE WHITE AREA: when you tap the lowest field first, the browser slides the visible area down
+  // (or scrolls the page) to reveal it, but the app is sized to the visible height and stays where it
+  // was, so part of the visible area ends up outside the app = blank white. While a field on this page
+  // is focused we move the app so its top edge always matches the top of the visible area.
+  const vv = window.visualViewport;
+  const appEl = document.getElementById('app');
+  let glued = false, shift = 0, chaseUntil = 0;
+  function unglue(){ glued = false; shift = 0; appEl.style.transform = ''; }
+  function realign(){
+    if(!glued) return;
+    if(!bugView.classList.contains('active')){ unglue(); return; }
+    const off = appEl.getBoundingClientRect().top - vv.offsetTop;   // 0 = already lined up
+    if(Math.abs(off) < 0.5) return;
+    shift -= off;
+    appEl.style.transform = 'translateY(' + shift + 'px)';
+  }
+  function chase(){                                                  // keeps checking while the keyboard slides up
+    realign();
+    if(glued && performance.now() < chaseUntil) requestAnimationFrame(chase);
+  }
+  if(vv && appEl){
+    vv.addEventListener('resize', realign);
+    vv.addEventListener('scroll', realign);
+    window.addEventListener('scroll', realign);
+    bugView.addEventListener('focusin', (e) => {
+      if(window.innerWidth > 640 || !e.target.matches('input, textarea')) return;
+      glued = true;
+      chaseUntil = performance.now() + 900;
+      chase();
+    });
+    bugView.addEventListener('focusout', () => {
+      setTimeout(() => { if(!bugView.contains(document.activeElement)) unglue(); }, 0);
+    });
+  }
+
   // Phone keyboard: scroll the focused field into view smoothly (same shared helper as Create / Enter Code)
   bugView.addEventListener('focusin', (e) => {
     const f = e.target;
