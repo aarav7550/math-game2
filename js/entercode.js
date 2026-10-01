@@ -148,6 +148,9 @@
     clearSuccess();
     btnView.disabled = true;
     showView('entercode');
+    // Focus the field inside this same tap: phones only raise the keyboard when focus() runs during
+    // the tap that opened the screen. preventScroll stops the slide-in from being nudged sideways.
+    input.focus({ preventScroll:true });
   }
   window.openEnterCodeScreen = openEnterCodeScreen;
 

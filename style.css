@@ -1567,7 +1567,7 @@
 #view-bug .bug-hint{ font-weight:500; color:var(--ink-dim); margin-left:4px; }
 #view-bug .bug-field input, #view-bug .bug-field textarea{ width:100%; box-sizing:border-box; background:var(--bg); border:1.5px solid var(--line); border-radius:10px; color:var(--ink); font-family:'Inter',sans-serif; padding:11px 13px; outline:none; transition:border-color .15s ease, box-shadow .15s ease; }
 #view-bug .bug-field input:focus, #view-bug .bug-field textarea:focus{ border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
-#view-bug .bug-field textarea{ resize:vertical; min-height:110px; line-height:1.5; }
+#view-bug .bug-field textarea{ resize:none; overflow:hidden; min-height:110px; line-height:1.5; }
 #view-bug .bug-trap{ display:none; }
 #view-bug .bug-status{ display:none; font-size:12.5px; font-weight:600; line-height:1.45; padding:9px 12px; border-radius:9px; }
 #view-bug .bug-status.ok{ display:block; color:var(--sk-x2); background:var(--sk-x2-soft); }

@@ -23,6 +23,14 @@
     statusEl.textContent = text || '';
   }
 
+  // the message box grows as the text gets long (CSS min-height is its starting size)
+  const msgBox = document.getElementById('bugMessage');
+  function growMessageBox(){
+    msgBox.style.height = 'auto';
+    msgBox.style.height = (msgBox.scrollHeight + msgBox.offsetHeight - msgBox.clientHeight) + 'px';   // + border
+  }
+  msgBox.addEventListener('input', growMessageBox);
+
   // opening the page always starts clean (old "Sent" / error message gone)
   document.getElementById('btnReportBug').addEventListener('click', () => {
     setStatus('', '');
@@ -56,6 +64,7 @@
       const data = await res.json().catch(() => ({}));
       if(res.ok && data.success){
         form.reset();
+        growMessageBox();   // reset() doesn't fire an input event, so shrink the box back by hand
         setStatus('ok', 'Sent! Thanks for the report.');
       } else {
         setStatus('err', "Couldn't send your report. Please try again in a moment.");
