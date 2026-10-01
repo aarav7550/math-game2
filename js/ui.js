@@ -748,38 +748,6 @@ challengeShowModal.addEventListener('click', (e) => {
   if(e.target === challengeShowModal) challengeShowModal.classList.remove('show');
 });
 
-// ---------- challenge codes: enter ----------
-const challengeEnterModal = document.getElementById('challengeEnterModal');
-const challengeCodeInput = document.getElementById('challengeCodeInput');
-const challengeEnterError = document.getElementById('challengeEnterError');
-
-const btnChallengeEnter = document.getElementById('btnChallengeEnter');
-if(btnChallengeEnter) btnChallengeEnter.addEventListener('click', () => {
-  challengeCodeInput.value = '';
-  challengeEnterError.style.display = 'none';
-  challengeEnterModal.classList.add('show');
-});
-document.getElementById('btnChallengeEnterCancel').addEventListener('click', () => {
-  challengeEnterModal.classList.remove('show');
-});
-challengeEnterModal.addEventListener('click', (e) => {
-  if(e.target === challengeEnterModal) challengeEnterModal.classList.remove('show');
-});
-document.getElementById('btnChallengeEnterGo').addEventListener('click', () => {
-  const payload = decodeChallengeCode(challengeCodeInput.value);
-  const validSkills = payload && payload.included.every(k => SKILLS[k]) && payload.included.length > 0
-    && Number.isInteger(payload.n) && payload.n > 0;
-  if(!validSkills){
-    challengeEnterError.style.display = 'block';
-    return;
-  }
-  pendingChallenge = payload;
-  state.practiceMode = false;
-  practiceCheckbox.checked = false;
-  challengeEnterModal.classList.remove('show');
-  startRound();
-});
-
 // History button: toggles into/out of the History view. Disabled entirely during a running round.
 btnHistory.addEventListener('click', () => {
   if(state.running) return; // guarded, but also visually disabled during play

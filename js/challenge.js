@@ -369,18 +369,40 @@
     showGeneratedCode(encodeChallengeCode(payload));   // existing "share this code" popup in ui.js
   });
 
-  // ---------- keep a focused number field clear of the phone keyboard ----------
-  // Native scroll-into-view isn't reliable in every webview, so scroll this screen's own
-  // scroller (the view itself, not the window) until the field sits ~40% down the visible area.
+  // ---------- keep a focused field clear of the phone keyboard ----------
+  // WHY IT JUMPED: the keyboard takes ~250-300ms to slide up, and while it does the visible height
+  // keeps shrinking, which also shrinks #app and this screen (--vh follows visualViewport). The old
+  // fixed 200ms timer measured the field mid-slide, so the scroll aimed at a target that was still
+  // moving, and the browser's own correction then made the page lurch.
+  // NOW: wait until the visible height has stopped changing, measure ONCE, do ONE smooth scroll.
+  // Shared with the Enter Code screen (entercode.js calls window.keepFieldClearOfKeyboard).
+  let kbToken = 0;
+  window.keepFieldClearOfKeyboard = function(scroller, field){
+    const token = ++kbToken;                      // a newer focus cancels an older pending scroll
+    const vv = window.visualViewport;
+    const heightNow = () => vv ? vv.height : window.innerHeight;
+    const MIN_WAIT = 200, QUIET = 120, MAX_WAIT = 800;
+    const start = performance.now();
+    let lastH = heightNow(), lastChange = start;
+    const timer = setInterval(() => {
+      if(token !== kbToken || document.activeElement !== field){ clearInterval(timer); return; }
+      const now = performance.now();
+      const h = heightNow();
+      if(Math.abs(h - lastH) > 0.5){ lastH = h; lastChange = now; }
+      const settled = now - start >= MIN_WAIT && now - lastChange >= QUIET;
+      if(!settled && now - start < MAX_WAIT) return;
+      clearInterval(timer);
+      const sRect = scroller.getBoundingClientRect();
+      const visibleH = Math.min(scroller.clientHeight, h - sRect.top);
+      const delta = field.getBoundingClientRect().top - sRect.top - visibleH * 0.4;
+      if(Math.abs(delta) > 2) scroller.scrollBy({ top: delta, behavior: 'smooth' });
+    }, 40);
+  };
+
   document.addEventListener('focusin', (e) => {
     const field = e.target;
     if(!view.contains(field) || !field.matches('input[type="number"], input[type="text"]')) return;
-    setTimeout(() => {
-      const vv = window.visualViewport;
-      const visibleH = vv ? vv.height : window.innerHeight;
-      const delta = field.getBoundingClientRect().top - visibleH * 0.4;
-      view.scrollBy({ top: delta, behavior: 'smooth' });
-    }, 200);
+    keepFieldClearOfKeyboard(view, field);
   });
 
   // ---------- entry point: Home → "Create" ----------

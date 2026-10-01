@@ -445,6 +445,111 @@
   </div>
 
   <!-- HISTORY -->
+  <div class="view" id="view-entercode">
+    <div class="ec-page">
+      <div class="ec-topbar">
+        <div class="ec-topbar-inner">
+          <button class="back-link" id="btnEnterCodeBack">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Back
+          </button>
+          <div class="ec-topbar-title">Enter a code</div>
+          <div style="width:60px;"></div>
+        </div>
+      </div>
+
+      <div class="ec-content">
+        <div class="ec-card">
+          <div class="ec-icon">
+            <svg viewBox="15 14 34 32" fill="var(--swords)">
+              <polygon points="37.6559448,38.0292358 35.3612671,35.7345581 33.5475464,37.2692871 36.184082,39.5012207 "/>
+              <polygon points="20.7426758,35.2585449 20.7429199,35.2583008 19.9790039,34.4943848 18.5649414,35.9089355 27.050293,44.3942871 28.4648438,42.9802246 27.7009277,42.2163086 27.7006836,42.2165527 "/>
+              <polygon points="39.5356445,22.0095215 40.949707,23.423584 26.3432617,38.0300293 27.8139648,39.5007324 45.25,24.7473145 47.5961914,15.3630371 38.2119141,17.7092285 23.4584961,35.1452637 24.9291992,36.6159668 "/>
+              <polygon points="39.0698853,36.6150513 40.5424805,35.142334 38.6741943,32.9313965 36.8931885,34.4383545 "/>
+              <polygon points="22.8730469,23.2463379 24.2871094,21.8322754 28.520874,26.06604 30.6873169,23.5056152 25.784668,17.7111816 16.4047852,15.3640137 18.7519531,24.7438965 25.0963135,30.1132202 27.2246704,27.5979614 "/>
+              <rect x="34.4850082" y="38.4443932" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -16.0335941 40.1803932)" width="12.0004444" height="2.0001316"/>
+              <rect x="14.5650234" y="42.3941536" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -25.9539566 26.1301823)" width="7.999836" height="4.0002632"/>
+              <rect x="43.4349251" y="40.3943672" transform="matrix(0.7071068 -0.7071068 0.7071068 0.7071068 -18.0838814 45.1302223)" width="4.0002632" height="7.999836"/>
+            </svg>
+          </div>
+
+          <div>
+            <div class="ec-title">Got a challenge code?</div>
+            <div class="ec-sub" style="margin-top:8px;">Paste it below to see what's in it before you start — same questions, same settings as whoever sent it.</div>
+          </div>
+
+          <div class="ec-field-wrap">
+            <div class="ec-input-shell" id="ecInputShell">
+              <textarea class="ec-input" id="ecCodeInput" placeholder="Paste code here" autocomplete="off" autocapitalize="off" spellcheck="false" rows="1"></textarea>
+              <div class="ec-display" id="ecCodeDisplay"></div>
+            </div>
+            <div class="ec-error" id="ecError">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+              That code doesn't look valid. Double-check it and try again.
+            </div>
+          </div>
+
+          <button class="ec-btn-view" id="ecBtnView" disabled>
+            View challenge
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <div class="ec-paste-hint">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Codes are usually shared as a link or pasted text
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-challengedetails">
+    <div class="cd-page">
+      <div class="cd-topbar">
+        <div class="cd-topbar-inner">
+          <button class="back-link" id="btnChallengeDetailsBack">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Back
+          </button>
+          <div class="cd-topbar-title">Challenge details</div>
+          <div style="width:60px;"></div>
+        </div>
+      </div>
+
+      <div class="cd-page-sub">Here's exactly what this challenge contains. Start whenever you're ready — the questions will be identical to whoever sent you this code.</div>
+
+      <div class="cd-section-label">Skills included</div>
+      <div class="cd-chip-row" id="cdChipRow"></div>
+
+      <div class="cd-section-label">Settings per skill</div>
+      <div class="cd-config-stack" id="cdConfigStack"></div>
+
+      <div class="cd-section-label">Number of questions</div>
+      <div class="cd-qcount-card">
+        <div class="cd-qcount-label">Questions in this challenge</div>
+        <div class="cd-qcount-value" id="cdQcountValue">15 <span class="cd-unit">questions</span></div>
+      </div>
+
+      <div class="cd-summary-strip">
+        <div class="cd-summary-left">
+          <div class="cd-sl-tag">Ready to play</div>
+          <div class="cd-sl-title" id="cdSummaryTitle"></div>
+          <div class="cd-sl-desc" id="cdSummaryDesc"></div>
+        </div>
+        <div class="cd-summary-right">
+          <div class="cd-summary-est">
+            <div class="num" id="cdSummaryEst">—</div>
+            <div class="lbl">Est. time</div>
+          </div>
+          <button class="cd-btn-start" id="cdBtnStart">
+            Start challenge
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="view" id="view-history">
     <div class="wrap">
 
@@ -614,19 +719,6 @@
   </div>
 </div>
 
-<!-- challenge code: enter a code -->
-<div class="modal-overlay" id="challengeEnterModal">
-  <div class="modal-box">
-    <p>Paste a challenge code to play the same set of questions.</p>
-    <input type="text" id="challengeCodeInput" class="range-input" placeholder="Paste code here" style="margin-bottom:14px;">
-    <div class="start-blocked-msg" id="challengeEnterError" style="display:none; margin-bottom:10px;">That code doesn't look valid.</div>
-    <div class="modal-actions">
-      <button class="btn-ghost" id="btnChallengeEnterCancel">Cancel</button>
-      <button class="btn-primary" id="btnChallengeEnterGo">Start round</button>
-    </div>
-  </div>
-</div>
-
 <!-- mixed drill: coming soon -->
 <div class="modal-overlay" id="mixedSoonModal">
   <div class="soon-modal" role="dialog" aria-labelledby="soonTitle">
@@ -653,6 +745,8 @@
 <script src="js/ui.js"></script>
 <script src="js/history.js"></script>
 <script src="js/challenge.js"></script>
+<script src="js/entercode.js"></script>
+<script src="js/challengedetails.js"></script>
 <script src="js/popups.js"></script>
 <script src="js/nav.js"></script>
 

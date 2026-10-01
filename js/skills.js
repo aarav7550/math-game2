@@ -76,6 +76,8 @@ const views = {
   historySkill: document.getElementById('view-history-skill'),
   historyFull: document.getElementById('view-history-full'),
   challenge: document.getElementById('view-challenge'),
+  entercode: document.getElementById('view-entercode'),
+  challengedetails: document.getElementById('view-challengedetails'),
 };
 function showView(name){
   Object.values(views).forEach(v => v.classList.remove('active'));

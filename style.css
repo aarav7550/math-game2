@@ -1359,6 +1359,167 @@
     #view-challenge .cc-page{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); }
   }
 
+  /* ============================================================
+     ENTER A CODE screen (Step 5), ported from the Enter Code mockup.
+     Classes are ec-* and every rule is scoped under #view-entercode.
+     The mockup's own colour names are aliased to the real theme variables.
+     ============================================================ */
+  #view-entercode{
+    flex-direction:column; overflow-y:auto;
+    --bg-card:var(--card); --text:var(--ink); --text-dim:var(--ink-dim); --text-faint:var(--ink-faint);
+    --border:var(--line); --border-soft:var(--line-soft);
+    --swords:#E8862E; --bad-bg:var(--bad-soft);
+    --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+  }
+  #view-entercode .ec-page{ max-width:800px; width:100%; margin:0 auto; padding:20px 20px 60px; flex:1 0 auto; display:flex; flex-direction:column; }
+
+  #view-entercode .ec-topbar{ display:flex; align-items:center; justify-content:space-between; padding:4px 0 22px; }
+  #view-entercode .ec-topbar-inner{ position:relative; display:flex; align-items:center; justify-content:space-between; width:100%; }
+  #view-entercode .back-link{ display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:600; padding:8px 4px 8px 0; border-radius:8px; margin-left:0; }
+  #view-entercode .back-link:hover{ color:var(--text); }
+  #view-entercode .back-link svg{ width:16px; height:16px; margin-left:-5px; }
+  #view-entercode .ec-topbar-title{ font-family:'Sora', sans-serif; font-weight:700; font-size:17px; position:absolute; left:50%; transform:translateX(-50%); }
+
+  #view-entercode .ec-content{ flex:1; display:flex; align-items:center; justify-content:center; padding:20px 0 60px; }
+  #view-entercode .ec-card{ width:100%; max-width:440px; display:flex; flex-direction:column; align-items:center; gap:26px; text-align:center; }
+
+  #view-entercode .ec-icon{ width:64px; height:64px; border-radius:18px; background:linear-gradient(135deg, var(--feature-a), var(--feature-b)); display:flex; align-items:center; justify-content:center; }
+  #view-entercode .ec-icon svg{ width:40px; height:40px; display:block; }
+  #view-entercode .ec-title{ font-family:'Sora', sans-serif; font-weight:800; font-size:22px; color:var(--text); }
+  #view-entercode .ec-sub{ color:var(--text-dim); font-size:14.5px; line-height:1.5; max-width:360px; }
+
+  #view-entercode .ec-field-wrap{ width:100%; display:flex; flex-direction:column; gap:10px; }
+  #view-entercode .ec-input-shell{ position:relative; width:100%; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-md); transition:border-color .12s ease, box-shadow .12s ease, background .3s ease; max-height:280px; overflow-y:auto; }
+  #view-entercode .ec-input-shell:focus-within{ border-color:var(--feature-accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--feature-accent) 18%, transparent); }
+  #view-entercode .ec-input-shell.error{ border-color:var(--bad); }
+  #view-entercode .ec-input-shell.error:focus-within{ box-shadow:0 0 0 4px color-mix(in srgb, var(--bad) 14%, transparent); }
+  #view-entercode .ec-input-shell.success{ border-color:var(--good); background:color-mix(in srgb, var(--good) 8%, var(--bg)); }
+
+  /* The real textarea holds focus/caret/typing but its own text is transparent; the visible
+     characters are drawn by .ec-display on top so each one can light up in the success sweep. */
+  #view-entercode .ec-input{ position:relative; z-index:1; display:block; width:100%; min-height:52px; background:none; border:none; resize:none; overflow:hidden; color:transparent; caret-color:var(--text); font-family:'Sora', sans-serif; font-weight:700; font-size:16px; line-height:1.4; padding:16px 16px; text-align:center; letter-spacing:0.02em; word-break:break-all; white-space:pre-wrap; }
+  #view-entercode .ec-input:focus{ outline:none; }
+  #view-entercode .ec-input::placeholder{ color:var(--text-faint); font-weight:600; letter-spacing:normal; }
+  #view-entercode .ec-display{ position:absolute; inset:0; z-index:0; pointer-events:none; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; padding:16px 16px; font-family:'Sora', sans-serif; font-weight:700; font-size:16px; line-height:1.4; letter-spacing:0.02em; word-break:break-all; color:var(--text); }
+  #view-entercode .ec-display .ch{ display:inline-block; transition:color .1s ease; }
+  #view-entercode .ec-display .ch.lit{ color:var(--good); }
+
+  #view-entercode .ec-error{ display:none; align-items:center; gap:6px; justify-content:center; background:var(--bad-bg); color:var(--bad); font-size:12.5px; font-weight:600; padding:9px 12px; border-radius:9px; }
+  #view-entercode .ec-error.show{ display:flex; }
+  #view-entercode .ec-error svg{ width:14px; height:14px; flex-shrink:0; }
+
+  #view-entercode .ec-btn-view{ width:100%; background:var(--navy-1); color:#fff; border:none; border-radius:var(--radius-md); padding:15px 20px; font-family:'Sora', sans-serif; font-weight:700; font-size:14.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform .12s ease, opacity .15s ease; }
+  #view-entercode .ec-btn-view:hover{ opacity:0.92; }
+  #view-entercode .ec-btn-view:active{ transform:scale(0.98); }
+  #view-entercode .ec-btn-view:disabled{ opacity:0.4; cursor:not-allowed; transform:none; }
+  #view-entercode .ec-btn-view svg{ width:15px; height:15px; stroke:currentColor; }
+  #view-entercode .ec-paste-hint{ font-size:12px; color:var(--text-faint); display:flex; align-items:center; gap:6px; justify-content:center; }
+  #view-entercode .ec-paste-hint svg{ width:13px; height:13px; stroke:currentColor; }
+
+  /* desktop only: the card settles into a fixed-width white card in the middle */
+  @media (min-width: 641px){
+    #view-entercode .ec-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:44px 40px; box-shadow:0 12px 32px rgba(18,24,38,0.06); }
+  }
+  /* phone only */
+  @media (max-width: 640px){
+    #view-entercode .ec-page{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px)); }
+  }
+  @media (max-width: 480px){
+    #view-entercode .ec-icon{ width:56px; height:56px; border-radius:16px; }
+    #view-entercode .ec-icon svg{ width:34px; height:34px; }
+    #view-entercode .ec-title{ font-size:19px; }
+  }
+
+  /* ============================================================
+     CHALLENGE DETAILS screen (Step 5), ported from the Challenge Details mockup.
+     Classes are cd-* and every rule is scoped under #view-challengedetails.
+     The mockup's own colour names are aliased to the real theme variables.
+     ============================================================ */
+  #view-challengedetails{
+    flex-direction:column; overflow-y:auto;
+    --bg-card:var(--card); --text:var(--ink); --text-dim:var(--ink-dim); --text-faint:var(--ink-faint);
+    --border:var(--line); --border-soft:var(--line-soft);
+    --half:var(--sk-half); --x2:var(--sk-x2); --x3:var(--sk-x3); --add:var(--sk-add);
+    --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+  }
+  #view-challengedetails .cd-page{ max-width:800px; width:100%; margin:0 auto; padding:20px 20px 140px; flex-shrink:0; }
+
+  #view-challengedetails .cd-topbar{ display:flex; align-items:center; justify-content:space-between; padding:4px 0 22px; }
+  #view-challengedetails .cd-topbar-inner{ position:relative; display:flex; align-items:center; justify-content:space-between; width:100%; }
+  #view-challengedetails .back-link{ display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:600; padding:8px 8px 8px 0; border-radius:8px; margin-left:0; }
+  #view-challengedetails .back-link:hover{ color:var(--text); }
+  #view-challengedetails .back-link svg{ width:16px; height:16px; margin-left:-4px; }
+  #view-challengedetails .cd-topbar-title{ font-family:'Sora', sans-serif; font-weight:700; font-size:17px; position:absolute; left:50%; transform:translateX(-50%); }
+  #view-challengedetails .cd-page-sub{ color:var(--text-dim); font-size:14.5px; line-height:1.5; margin-bottom:26px; }
+  #view-challengedetails .cd-section-label{ font-family:'Sora', sans-serif; font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:12px; letter-spacing:0.01em; }
+
+  /* skills included: read-only chips */
+  #view-challengedetails .cd-chip-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px; margin-bottom:28px; }
+  #view-challengedetails .cd-chip{ --sc:var(--half); display:flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:12px; padding:10px 14px 10px 12px; }
+  #view-challengedetails .cd-chip[data-skill="half"]{ --sc:var(--half); }
+  #view-challengedetails .cd-chip[data-skill="x2"]{ --sc:var(--x2); }
+  #view-challengedetails .cd-chip[data-skill="x3"]{ --sc:var(--x3); }
+  #view-challengedetails .cd-chip[data-skill="add"]{ --sc:var(--add); }
+  #view-challengedetails .cd-chip-icon{ width:30px; height:30px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; background:color-mix(in srgb, var(--sc) 14%, #fff); color:var(--sc); }
+  #view-challengedetails .cd-chip-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:13.5px; color:var(--text); }
+
+  /* per-skill settings cards: read-only rows */
+  #view-challengedetails .cd-config-stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+  #view-challengedetails .cd-card{ --sc:var(--half); background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:var(--radius-md); padding:18px; }
+  #view-challengedetails .cd-card[data-skill="half"]{ --sc:var(--half); }
+  #view-challengedetails .cd-card[data-skill="x2"]{ --sc:var(--x2); }
+  #view-challengedetails .cd-card[data-skill="x3"]{ --sc:var(--x3); }
+  #view-challengedetails .cd-card[data-skill="add"]{ --sc:var(--add); }
+  #view-challengedetails .cd-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  #view-challengedetails .cd-card-title{ font-family:'Sora', sans-serif; font-size:14.5px; font-weight:700; color:var(--text); }
+  #view-challengedetails .cd-level-badge{ font-family:'Sora', sans-serif; font-size:10.5px; font-weight:700; color:var(--sc); background:color-mix(in srgb, var(--sc) 12%, #fff); padding:4px 10px; border-radius:999px; }
+  #view-challengedetails .cd-rows{ display:flex; flex-direction:column; gap:9px; }
+  #view-challengedetails .cd-row{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; padding:2px 0; }
+  #view-challengedetails .cd-label{ color:var(--text-dim); font-weight:600; }
+  #view-challengedetails .cd-value{ color:var(--text); font-weight:700; font-variant-numeric:tabular-nums; }
+
+  /* question count */
+  #view-challengedetails .cd-qcount-card{ background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px 18px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  #view-challengedetails .cd-qcount-label{ font-family:'Sora', sans-serif; font-size:14px; font-weight:700; color:var(--text); }
+  #view-challengedetails .cd-qcount-value{ font-family:'Sora', sans-serif; font-weight:800; font-size:20px; color:var(--navy-1); display:flex; align-items:baseline; gap:5px; }
+  #view-challengedetails .cd-unit{ font-size:12px; font-weight:600; color:var(--text-dim); }
+
+  /* sticky start strip */
+  #view-challengedetails .cd-summary-strip{ background:linear-gradient(100deg, var(--feature-a), var(--feature-b)); border-radius:16px; color:#fff; position:fixed; left:20px; right:20px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:40; max-width:760px; margin:0 auto; box-shadow:0 12px 32px rgba(18,24,38,0.28); }
+  #view-challengedetails .cd-btn-start{ background:var(--feature-accent); color:#082036; border:none; border-radius:10px; padding:11px 22px; font-family:'Sora', sans-serif; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:transform .12s ease, opacity .15s ease; white-space:nowrap; flex-shrink:0; }
+  #view-challengedetails .cd-btn-start:hover{ opacity:0.92; }
+  #view-challengedetails .cd-btn-start:active{ transform:scale(0.97); }
+  #view-challengedetails .cd-btn-start svg{ width:15px; height:15px; stroke:currentColor; }
+
+  /* desktop only */
+  @media (min-width: 641px){
+    #view-challengedetails .cd-config-stack{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+    #view-challengedetails .cd-summary-strip{ padding:18px 22px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+    #view-challengedetails .cd-summary-left{ min-width:0; }
+    #view-challengedetails .cd-sl-tag{ font-size:10.5px; color:var(--feature-accent-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+    #view-challengedetails .cd-sl-title{ font-family:'Sora', sans-serif; font-weight:700; font-size:16px; margin-top:4px; }
+    #view-challengedetails .cd-sl-desc{ font-size:12px; color:var(--feature-accent-dim); margin-top:6px; }
+    #view-challengedetails .cd-summary-right{ display:flex; align-items:center; gap:16px; flex-shrink:0; }
+    #view-challengedetails .cd-summary-est{ display:flex; flex-direction:column; align-items:center; }
+    #view-challengedetails .cd-summary-est .num{ font-family:'Sora', sans-serif; font-weight:800; font-size:16px; color:var(--feature-accent); }
+    #view-challengedetails .cd-summary-est .lbl{ font-size:9.5px; color:var(--feature-accent-dim); text-transform:uppercase; margin-top:2px; }
+  }
+  /* phone only */
+  @media (max-width: 640px){
+    #view-challengedetails .cd-page{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); padding-bottom:220px; }
+    #view-challengedetails .cd-summary-strip{ padding:14px 14px 14px 12px; left:14px; right:14px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+    #view-challengedetails .cd-sl-tag{ font-size:10.5px; color:var(--feature-accent-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+    #view-challengedetails .cd-sl-title{ font-family:'Sora', sans-serif; font-weight:700; font-size:14.5px; margin-top:3px; }
+    #view-challengedetails .cd-sl-desc{ font-size:12px; color:var(--feature-accent-dim); margin-top:4px; line-height:1.4; }
+    #view-challengedetails .cd-summary-right{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+    #view-challengedetails .cd-summary-est{ display:flex; flex-direction:column; }
+    #view-challengedetails .cd-summary-est .num{ font-family:'Sora', sans-serif; font-weight:800; font-size:14.5px; color:var(--feature-accent); }
+    #view-challengedetails .cd-summary-est .lbl{ font-size:9.5px; color:var(--feature-accent-dim); text-transform:uppercase; margin-top:1px; }
+  }
+  @media (max-width: 480px){
+    #view-challengedetails .cd-chip-row{ grid-template-columns:1fr 1fr; }
+  }
+
 /* ---- touchscreens only: no blue tap-flash / text-selection highlight on buttons and cards ---- */
 @media (hover:none) and (pointer:coarse){
   *{ -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }

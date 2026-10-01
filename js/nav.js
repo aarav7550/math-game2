@@ -181,7 +181,7 @@
 
   // ---- in-app back buttons go through the same path as the system button ----
   function appBack(){ if(depth > 0) history.back(); else window.showView('home'); }
-  ['btnHistoryBack','btnSkdBack','btnFullBack','btnChallengeBack'].forEach(id => {
+  ['btnHistoryBack','btnSkdBack','btnFullBack','btnChallengeBack','btnEnterCodeBack','btnChallengeDetailsBack'].forEach(id => {
     const b = document.getElementById(id);
     if(b) b.addEventListener('click', appBack);
   });
