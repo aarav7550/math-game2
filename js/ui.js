@@ -666,6 +666,19 @@ function timerSecondsForConfig(key, cfg){
   const preset = presets[level] || presets[CUSTOM_TIMER_LEVEL];
   return preset.secs;
 }
+// Estimated length of a round, in seconds, based on the same per-question timers the game uses.
+// Players rarely use a question's whole timer, so the estimate counts only a fraction of it
+// (ESTIMATE_TIMER_FRACTION; 0.5 = half the timer). Change that one number to make estimates longer/shorter.
+// Mixed rounds pick each question's skill evenly from the included ones (see pickSkillKey in game.js),
+// so the expected timer per question is the average of those skills' timers.
+// included: array of skill keys   cfgBySkill: {skillKey: {min,max,count?}}   questionCount: number
+const ESTIMATE_TIMER_FRACTION = 0.5;
+function estimateRoundSeconds(included, cfgBySkill, questionCount){
+  if(!included.length) return 0;
+  const sumOfTimers = included.reduce((sum, k) => sum + timerSecondsForConfig(k, cfgBySkill[k]), 0);
+  const avgTimer = sumOfTimers / included.length;
+  return Math.round(questionCount * avgTimer * ESTIMATE_TIMER_FRACTION);
+}
 function matchingDifficulty(key){
   return matchingDifficultyForConfig(key, skillConfig[key]);
 }

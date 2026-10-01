@@ -69,7 +69,7 @@
     return out;
   }
 
-  function slide(pv, nv, dir, scrolls){
+  function slide(pv, nv, dir, scrolls, nvTop){
     cleanupSlide();
     const token = ++slideToken;
     if(!pv || !nv || pv === nv || dir === 'none') return;
@@ -93,6 +93,7 @@
     pv.classList.add(fwd ? 'vt-under' : 'vt-top');
     nv.classList.add(fwd ? 'vt-top' : 'vt-under');
     scrolls.forEach(([el, y]) => { el.scrollTop = y; });
+    if(nvTop) nv.scrollTop = nvTop;   // the screen underneath keeps its restored position during the slide
 
     const opts = { duration: SLIDE_MS, easing: SLIDE_EASE, fill: 'forwards' };
     const topAnim = top.animate(
@@ -108,15 +109,22 @@
   }
 
   // One place that swaps screens: used by showView() and by the system Back button.
+  // Where each screen was scrolled to when we last left it. Going BACK reopens the screen at that spot
+  // (so returning from "Create a challenge" lands on the bottom of Home, where you tapped it);
+  // going forward always opens a screen at the top.
+  const savedScroll = {};
+
   function swap(prevName, name, dir){
     const pv = viewEl(prevName);
+    if(pv && prevName !== name) savedScroll[prevName] = pv.scrollTop;   // must be read BEFORE the screen is hidden
     const scrolls = snapshotScroll(pv);
     rawShowView(name);
     currentView = name;
     if(name === 'home' && typeof renderHomeDashboard === 'function') renderHomeDashboard(); // stats refresh after a round / import
     const nv = viewEl(name);
-    if(nv) nv.scrollTop = 0;
-    slide(pv, nv, dir, scrolls);
+    const nvTop = dir === 'back' ? (savedScroll[name] || 0) : 0;
+    if(nv) nv.scrollTop = nvTop;
+    slide(pv, nv, dir, scrolls, nvTop);
   }
 
   window.showView = function(name){

@@ -15,7 +15,6 @@
   const view = document.getElementById('view-challenge');
   if(!view) return;
 
-  const EST_SECONDS_PER_Q = 8;
   const SKILL_ORDER_LOCAL = SKILL_ORDER.slice();
 
   const grid = document.getElementById('ccSkillGrid');
@@ -194,6 +193,7 @@
       });
       countBtn.classList.add('active');
       config[skillId].custom.count = parseInt(countBtn.dataset.v, 10);
+      updateFooter();
       return;
     }
 
@@ -221,7 +221,7 @@
     if(countInput){
       const skillId = countInput.closest('.cc-config-card').dataset.skill;
       const v = parseInt(countInput.value, 10);
-      if(v > 0) config[skillId].custom.count = v;
+      if(v > 0){ config[skillId].custom.count = v; updateFooter(); }
     }
   });
 
@@ -336,8 +336,10 @@
     const names = SKILL_ORDER_LOCAL.filter(id => selected.has(id)).map(id => skillDisplayLabels[id]);
     summaryTitle.textContent = `${n} skill${n > 1 ? 's' : ''} · ${questionCount} questions`;
     summaryDesc.textContent = names.join(', ');
-    // Question count is fixed however many skills are in the mix, so the estimate only scales with it.
-    summaryEst.textContent = formatEstimate(questionCount * EST_SECONDS_PER_Q);
+    // Dynamic: every level of every skill has its own timer, so add them up from the real presets.
+    const cfgBySkill = {};
+    SKILL_ORDER_LOCAL.filter(id => selected.has(id)).forEach(id => { cfgBySkill[id] = resolveConfig(id); });
+    summaryEst.textContent = formatEstimate(estimateRoundSeconds(Object.keys(cfgBySkill), cfgBySkill, questionCount));
   }
 
   // Turns the picked level (or custom numbers) for one skill into the plain {min,max,parity,count?}
