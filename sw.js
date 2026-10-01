@@ -1,5 +1,5 @@
 // Bump this version string whenever you deploy changes so old caches get replaced.
-const CACHE_VERSION = 'numbers-v22';
+const CACHE_VERSION = 'numbers-v23';
 const CACHE_NAME = `numbers-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
@@ -17,6 +17,7 @@ const ASSETS = [
   './js/challenge.js',
   './js/entercode.js',
   './js/challengedetails.js',
+  './js/info.js',
   './js/nav.js',
   './manifest.json',
   './icons/icon-192.png',

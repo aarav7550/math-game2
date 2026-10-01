@@ -78,6 +78,8 @@ const views = {
   challenge: document.getElementById('view-challenge'),
   entercode: document.getElementById('view-entercode'),
   challengedetails: document.getElementById('view-challengedetails'),
+  about: document.getElementById('view-about'),
+  bug: document.getElementById('view-bug'),
 };
 function showView(name){
   Object.values(views).forEach(v => v.classList.remove('active'));

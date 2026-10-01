@@ -42,8 +42,7 @@ btnMoreMenu.addEventListener('click', (e) => {
   moreMenuDropdown.classList.toggle('open');
 });
 document.addEventListener('click', () => moreMenuDropdown.classList.remove('open'));
-// TODO (Step 6): btnAboutUs / btnReportBug currently have no destination —
-// About us and Report a bug are static pages wired in Step 6.
+// btnAboutUs / btnReportBug are wired in js/info.js (About us + Report a bug pages).
 
 // ---------- greeting + display name (mobile widget + desktop variant) ----------
 // Greeting messages + pickGreeting() live in js/greetings.js

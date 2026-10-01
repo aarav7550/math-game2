@@ -1520,6 +1520,76 @@
     #view-challengedetails .cd-chip-row{ grid-template-columns:1fr 1fr; }
   }
 
+/* ============================================================
+   ABOUT US + REPORT A BUG screens (Step 6), ported from the two mockups.
+   Shared pieces are .pg-* ; About-only are .ab-* ; Bug-only are .bug-* .
+   Every rule is scoped under #view-about / #view-bug. Phone and desktop
+   rules live in separate @media blocks so a fix for one never touches the other.
+   ============================================================ */
+#view-about, #view-bug{
+  flex-direction:column; overflow-y:auto;
+  --tg:#26A5E4; --tg-soft:#E9F6FD; --dc:#5865F2; --dc-soft:#EEF0FE;
+}
+#view-about .ab-page, #view-bug .bug-page{ width:100%; margin:0 auto; padding:20px 20px 60px; flex:1 0 auto; display:flex; flex-direction:column; }
+#view-about .ab-page{ max-width:640px; }
+#view-bug .bug-page{ max-width:560px; }
+
+#view-about .pg-topbar, #view-bug .pg-topbar{ position:relative; display:flex; align-items:center; justify-content:space-between; padding:4px 0 22px; }
+#view-about .back-link, #view-bug .back-link{ display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:14px; font-weight:600; padding:8px 4px 8px 0; border-radius:8px; }
+#view-about .back-link:hover, #view-bug .back-link:hover{ color:var(--ink); }
+#view-about .back-link svg, #view-bug .back-link svg{ width:16px; height:16px; margin-left:-5px; }
+#view-about .pg-topbar-title, #view-bug .pg-topbar-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:17px; position:absolute; left:50%; transform:translateX(-50%); }
+
+#view-about .pg-hero, #view-bug .pg-hero{ background:linear-gradient(135deg, var(--feature-a), var(--feature-b)); border-radius:16px; color:#fff; margin-bottom:20px; }
+#view-about .pg-hero-title, #view-bug .pg-hero-title{ font-family:'Sora',sans-serif; font-weight:800; margin-bottom:10px; }
+#view-about .pg-hero-desc, #view-bug .pg-hero-desc{ line-height:1.6; color:var(--feature-accent-dim); }
+
+#view-about .pg-card, #view-bug .pg-card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:16px; }
+#view-about .pg-card-title, #view-bug .pg-card-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:14.5px; margin-bottom:10px; color:var(--ink); }
+
+/* About-only */
+#view-about .ab-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+#view-about .ab-row:last-child{ border-bottom:none; }
+#view-about .ab-label{ color:var(--ink-dim); }
+#view-about .ab-value{ font-family:'Sora',sans-serif; font-weight:700; color:var(--ink); text-align:right; }
+#view-about .ab-badge{ display:inline-block; font-family:'Inter',sans-serif; font-size:11px; font-weight:700; color:var(--primary); background:#E6F5FB; border-radius:6px; padding:2px 8px; margin-left:8px; }
+#view-about .ab-log-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+#view-about .ab-log-ver{ font-family:'Sora',sans-serif; font-weight:700; font-size:13.5px; }
+#view-about .ab-log-date{ font-size:11.5px; color:var(--ink-dim); }
+#view-about .ab-log ul, #view-bug .bug-tips ul{ margin:0; padding-left:18px; }
+#view-about .ab-log li, #view-bug .bug-tips li{ font-size:13px; color:var(--ink-dim); line-height:1.7; }
+#view-about .ab-footer{ text-align:center; font-size:12px; color:var(--ink-dim); margin-top:8px; line-height:1.6; }
+
+/* Bug-only */
+#view-bug .bug-contact{ display:flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:12px; cursor:pointer; text-decoration:none; transition:border-color .15s ease; }
+#view-bug .bug-contact:hover{ border-color:var(--ink-dim); }
+#view-bug .bug-icon{ width:42px; height:42px; border-radius:11px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+#view-bug .bug-icon svg{ width:22px; height:22px; }
+#view-bug .bug-body{ flex:1; min-width:0; }
+#view-bug .bug-name{ font-family:'Sora',sans-serif; font-weight:700; font-size:14.5px; color:var(--ink); margin-bottom:2px; }
+#view-bug .bug-handle{ font-size:12.5px; color:var(--ink-dim); }
+#view-bug .bug-arrow{ color:var(--ink-dim); flex-shrink:0; }
+#view-bug .bug-arrow svg{ width:18px; height:18px; display:block; }
+#view-bug .bug-tips{ margin-top:8px; padding:18px 20px; }
+
+/* desktop only */
+@media (min-width: 641px){
+  #view-about .pg-hero{ padding:32px 26px; }
+  #view-about .pg-hero-title{ font-size:24px; }
+  #view-about .pg-hero-desc{ font-size:14.5px; max-width:440px; }
+  #view-bug .pg-hero{ padding:28px 26px; }
+  #view-bug .pg-hero-title{ font-size:21px; margin-bottom:8px; }
+  #view-bug .pg-hero-desc{ font-size:13.5px; }
+}
+/* phone only */
+@media (max-width: 640px){
+  #view-about .ab-page, #view-bug .bug-page{ padding-top:max(24px, calc(env(safe-area-inset-top, 0px) + 8px)); padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px)); }
+  #view-about .pg-hero, #view-bug .pg-hero{ padding:26px 22px; }
+  #view-about .pg-hero-title{ font-size:22px; }
+  #view-bug .pg-hero-title{ font-size:19px; margin-bottom:8px; }
+  #view-about .pg-hero-desc, #view-bug .pg-hero-desc{ font-size:13.5px; }
+}
+
 /* ---- touchscreens only: no blue tap-flash / text-selection highlight on buttons and cards ---- */
 @media (hover:none) and (pointer:coarse){
   *{ -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; }
