@@ -852,7 +852,7 @@
   .see-full-btn{
     display:block; width:100%; text-align:center; background:var(--card); border:1px solid var(--line);
     color:var(--primary); font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px;
-    padding:12px; border-radius:10px; cursor:pointer; margin-top:2px;
+    padding:12px; border-radius:10px; cursor:pointer; margin-top:8px;   /* = the gap between session rows */
   }
   .see-full-btn:hover{ border-color:var(--primary); }
 
@@ -925,6 +925,7 @@
   /* ---------- HISTORY OVERVIEW: recent-session rows on mobile (mockup: stacks at 860px) ---------- */
   @media (max-width:860px){
     #view-history .sessions-list{ gap:10px; }
+    #view-history .see-full-btn{ margin-top:10px; }   /* = the (phone) gap between session rows */
     #view-history .day-header{ margin-top:14px; font-size:13.5px; }
     #view-history .session-row{
       grid-template-columns: 1fr auto; justify-content:normal;
@@ -1195,8 +1196,9 @@
   .sr-prac-cell{ display:none; }
   .session-row.is-practice .sr-prac-cell{ display:block; position:absolute; top:-9px; right:14px; overflow:visible; }
   /* The chip pokes 9px above its row, so ONLY practice rows get a little extra space above them.
-     Normal rows keep the regular gap between them. */
-  .session-row.is-practice{ margin-top:8px; }
+     Normal rows keep the regular gap between them. Kept small (4px) so two practice rows in a
+     row sit only slightly further apart than normal rows. */
+  .session-row.is-practice{ margin-top:4px; }
 
   /* ============================================================
      CREATE CHALLENGE screen (Step 5) — ported from the Create Challenge mockup.

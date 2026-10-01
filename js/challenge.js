@@ -36,7 +36,7 @@
   let questionCount = 15;
 
   function freshDraft(){
-    selected = new Set(['half', 'x2']);
+    selected = new Set();   // start from scratch: the player picks every skill themselves
     config = {};
     SKILL_ORDER_LOCAL.forEach(k => {
       // the custom editor starts from the player's last-used numbers for that skill (same as the Difficulty popup)
