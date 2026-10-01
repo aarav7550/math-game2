@@ -14,7 +14,7 @@
   // Phone timings stay as they were; desktop (same 641px breakpoint as style.css) is quicker.
   const DESKTOP = window.matchMedia('(min-width:641px)');
   const T = () => DESKTOP.matches
-    ? { open:180, close:120, fade:120, pop:140, popClose:100 }
+    ? { open:170, close:110, fade:120, pop:140, popClose:100 }
     : { open:220, close:150, fade:140, pop:170, popClose:120 };
   const EASE_OUT = 'cubic-bezier(.22,.7,.25,1)';
   const EASE_IN  = 'cubic-bezier(.4,0,.6,1)';
@@ -65,18 +65,17 @@
     const release = layerUp(ov, box);
     const anims = [ov.animate([{ opacity:0 }, { opacity:1 }], { duration:T().fade, easing:'ease-out' })];
 
-    const from = src && src.isConnected ? src.getBoundingClientRect() : null;
-    if(usable(from)){
-      const to = box.getBoundingClientRect();
-      if(DESKTOP.matches){
-        // desktop: ONE animation on the box (squeeze + fade-in) instead of one per child, far cheaper to draw
-        anims.push(box.animate(
-          [{ transformOrigin:'0 0', transform:squeezeInto(from, to), opacity:0 },
-           { opacity:1, offset:.55 },
-           { transformOrigin:'0 0', transform:'none', opacity:1 }],
-          { duration:T().open, easing:EASE_OUT }
-        ));
-      } else {
+    if(DESKTOP.matches){
+      // DESKTOP DEMO: no shrink-from-the-card. The popup just fades in while rising a few pixels.
+      anims.push(box.animate(
+        [{ opacity:0, transform:'translateY(12px)' }, { opacity:1, transform:'none' }],
+        { duration:T().open, easing:EASE_OUT }
+      ));
+    } else {
+      // PHONE (unchanged): grow out of the tapped element
+      const from = src && src.isConnected ? src.getBoundingClientRect() : null;
+      if(usable(from)){
+        const to = box.getBoundingClientRect();
         anims.push(box.animate(
           [{ transformOrigin:'0 0', transform:squeezeInto(from, to) }, { transformOrigin:'0 0', transform:'none' }],
           { duration:T().open, easing:EASE_OUT }
@@ -86,12 +85,12 @@
           [{ opacity:0 }, { opacity:0, offset:.3 }, { opacity:1 }],
           { duration:T().open, easing:'linear' }
         )));
+      } else {
+        anims.push(box.animate(
+          [{ opacity:0, transform:'translateY(14px) scale(.94)' }, { opacity:1, transform:'none' }],
+          { duration:T().pop, easing:EASE_OUT }
+        ));
       }
-    } else {
-      anims.push(box.animate(
-        [{ opacity:0, transform:'translateY(14px) scale(.94)' }, { opacity:1, transform:'none' }],
-        { duration:T().pop, easing:EASE_OUT }
-      ));
     }
     Promise.all(anims.map(a => a.finished)).then(release, release);
   }
@@ -102,23 +101,24 @@
     if(!box) return;
 
     ov.classList.add('closing');           // keeps display:flex so the exit can play
-    const src = originOf.get(ov);
-    // Home is hidden by the time a round starts, so its rect is empty -> plain fade below
-    const target = src && src.isConnected ? src.getBoundingClientRect() : null;
     const anims = [];
     const release = layerUp(ov, box);
 
-    if(usable(target)){
-      const from = box.getBoundingClientRect();
+    if(DESKTOP.matches){
+      // DESKTOP DEMO: plain fade-out with a small drop
       anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:T().close, easing:'ease-in', fill:'forwards' }));
-      if(DESKTOP.matches){
-        anims.push(box.animate(
-          [{ transformOrigin:'0 0', transform:'none', opacity:1 },
-           { opacity:0, offset:.6 },
-           { transformOrigin:'0 0', transform:squeezeInto(target, from), opacity:0 }],
-          { duration:T().close, easing:EASE_IN, fill:'forwards' }
-        ));
-      } else {
+      anims.push(box.animate(
+        [{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(8px)' }],
+        { duration:T().close, easing:EASE_IN, fill:'forwards' }
+      ));
+    } else {
+      // PHONE (unchanged): shrink back into the tapped element
+      const src = originOf.get(ov);
+      // Home is hidden by the time a round starts, so its rect is empty -> plain fade below
+      const target = src && src.isConnected ? src.getBoundingClientRect() : null;
+      if(usable(target)){
+        const from = box.getBoundingClientRect();
+        anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:T().close, easing:'ease-in', fill:'forwards' }));
         anims.push(box.animate(
           [{ transformOrigin:'0 0', transform:'none' }, { transformOrigin:'0 0', transform:squeezeInto(target, from) }],
           { duration:T().close, easing:EASE_IN, fill:'forwards' }
@@ -127,20 +127,20 @@
           [{ opacity:1 }, { opacity:0, offset:.5 }, { opacity:0 }],
           { duration:T().close, easing:'linear', fill:'forwards' }
         )));
+      } else {
+        anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:T().popClose, easing:'ease-in', fill:'forwards' }));
+        anims.push(box.animate(
+          [{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(10px) scale(.96)' }],
+          { duration:T().popClose, easing:'ease-in', fill:'forwards' }
+        ));
       }
-    } else {
-      anims.push(ov.animate([{ opacity:1 }, { opacity:0 }], { duration:T().popClose, easing:'ease-in', fill:'forwards' }));
-      anims.push(box.animate(
-        [{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(10px) scale(.96)' }],
-        { duration:T().popClose, easing:'ease-in', fill:'forwards' }
-      ));
     }
 
     Promise.all(anims.map(a => a.finished)).then(() => {
       anims.forEach(a => a.cancel());
       release();
       if(!ov.classList.contains('show')) ov.classList.remove('closing');
-    }).catch(() => { release(); });                    // cancelled by a quick reopen: nothing to clean up
+    }).catch(() => { release(); });        // cancelled by a quick reopen: nothing to clean up
   }
 
   const observer = new MutationObserver((mutations) => {
