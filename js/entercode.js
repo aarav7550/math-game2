@@ -85,15 +85,15 @@
   });
 
   // ---------- success sweep: fixed total time, so a 300-character code isn't slow ----------
-  const SWEEP_TOTAL_MS = 260;
-  const MIN_STAGGER_MS = 6;
+  const SWEEP_TOTAL_MS = 140;
+  const MIN_STAGGER_MS = 3;
 
   function playSuccessAnimation(onDone){
     shell.classList.add('success');
     const chars = display.querySelectorAll('.ch');
     const stagger = chars.length > 1 ? Math.max(MIN_STAGGER_MS, SWEEP_TOTAL_MS / chars.length) : 0;
     chars.forEach((span, i) => setTimeout(() => span.classList.add('lit'), i * stagger));
-    setTimeout(onDone, chars.length * stagger + 180);
+    setTimeout(onDone, chars.length * stagger + 90);
   }
 
   function handOff(payload){
