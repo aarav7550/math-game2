@@ -1090,6 +1090,11 @@
   .modal-box .btn-ghost:hover{ background:var(--line-soft); }
   .modal-box .btn-primary{ background:var(--primary); border:none; color:#fff; font-weight:700; }
 
+  /* keyboard focus ring inside popups (only shows when using the keyboard) */
+  .modal-box button:focus-visible, .soon-btn:focus-visible, .soon-modal .dm-close:focus-visible{
+    outline:2px solid var(--primary); outline-offset:2px;
+  }
+
   /* one-time decimal-answers hint popup */
   .dh-title{ font-size:15.5px; font-weight:700; color:var(--ink); margin-bottom:8px; }
   .modal-box p.dh-text{ margin-bottom:12px; }

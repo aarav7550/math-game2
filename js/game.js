@@ -21,14 +21,6 @@ btnConfirmExit.addEventListener('click', () => {
   showView('home');
 });
 
-// Esc during a round opens the "Leave this round?" popup (it does not leave by itself);
-// Esc again while that popup is open is the same as "Stay".
-document.addEventListener('keydown', (e) => {
-  if(e.key !== 'Escape' || e.repeat) return;
-  if(exitModal.classList.contains('show')){ btnCancelExit.click(); return; }
-  if(state.running && views.play.classList.contains('active')) btnExitRound.click();
-});
-
 function pauseRoundForModal(){
   if(state.perSkillTimer) clearTimeout(state.perSkillTimer);
   const computed = getComputedStyle(timerFill).transform;
@@ -81,14 +73,17 @@ function showDecimalHint(skills){
   decimalHintModal.dataset.skills = skills.join(',');
   decimalHintModal.classList.add('show');
 }
-document.getElementById('btnDecimalHintOk').addEventListener('click', () => {
+function closeDecimalHint(thenStart){
   const skills = (decimalHintModal.dataset.skills || '').split(',').filter(Boolean);
   const saved = savedDecimalHints();
   skills.forEach(k => { saved[k] = true; hintShownThisSession[k] = true; });
   try { localStorage.setItem(DECIMAL_HINT_KEY, JSON.stringify(saved)); } catch(e){}
   decimalHintModal.classList.remove('show');
-  startRound();   // the round that was waiting for the hint starts now
-});
+  if(thenStart) startRound();   // the round that was waiting for the hint starts now
+}
+document.getElementById('btnDecimalHintOk').addEventListener('click', () => closeDecimalHint(true));
+// Esc / system Back on the hint (nav.js): counts as seen, but doesn't start a timed round by accident.
+window.dismissDecimalHint = () => closeDecimalHint(false);
 
 // ---------- round logic ----------
 function startRound(){
@@ -201,7 +196,14 @@ function runTimerBar(){
 // ---------- live-checking input ----------
 answerInput.addEventListener('input', (e) => {
   if(!state.running || state.awaitingAdvance) return;
-  const raw = answerInput.value.trim();
+  let raw = answerInput.value.trim();
+  // Only one decimal point allowed: if a second one is typed (e.g. after the auto-added one),
+  // drop it and keep the first.
+  const firstDot = raw.indexOf('.');
+  if(firstDot !== -1 && raw.indexOf('.', firstDot + 1) !== -1){
+    raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
+    answerInput.value = raw;
+  }
   if(raw === '' || raw === '-') return;
   const value = Number(raw);
   const answer = state.currentProblem.answer;

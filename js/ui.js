@@ -454,6 +454,10 @@ function openDifficultyPicker(skillKey){
   qcountBar.classList.remove('custom-active');
   qcountBar.querySelector('[data-n="15"]').classList.add('active');
 
+  // The skill card you clicked still has keyboard focus under the popup; let go of it so
+  // Enter means "start" and not "click that card again".
+  if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+
   diffModalOverlay.classList.add('show');
 }
 
@@ -474,7 +478,10 @@ document.addEventListener('keydown', (e) => {
     const opt = diffCardMount.querySelectorAll('.diff-opt')[parseInt(e.key, 10) - 1];
     if(opt){ e.preventDefault(); opt.click(); }
   } else if(e.key === 'Enter'){
-    if(tag === 'BUTTON' || e.repeat) return;
+    if(e.repeat) return;
+    // A button INSIDE the popup keeps its own Enter (e.g. Tab to a level, press Enter to pick it).
+    // A button outside it is just stale focus left over from opening the popup, so ignore that.
+    if(tag === 'BUTTON' && diffModalOverlay.contains(e.target)) return;
     if(!btnStartRound.disabled){ e.preventDefault(); btnStartRound.click(); }
   }
 });
