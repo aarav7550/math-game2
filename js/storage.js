@@ -121,7 +121,7 @@ const DEFAULT_CONFIG = {
   sq:    { min: 2, max: 30, parity: 'any' },
   cube:  { min: 2, max: 20, parity: 'any' },
   table: { min: 2, max: 20, parity: 'any' },
-  recip: { min: 2, max: 30, mode: 'fwd' }   // mode: 'fwd' = 1/7 -> 14.28   'rev' = 14.28% -> 7
+  recip: { min: 1, max: 30, mode: 'fwd' }   // mode: 'fwd' = 1/7 -> 14.28   'rev' = 14.28% -> 7
 };
 const CONFIG_KEY = 'numbers_game_config_v1';
 function loadConfig(){

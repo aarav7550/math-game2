@@ -48,11 +48,11 @@ const DIFFICULTY_PRESETS = {
     difficult: { min: 21, max: 30, secs: 15 },
     verydifficult: { min: 31, max: 40, secs: 18 }
   },
-  // Reciprocals: difficulty = direction, not range, so both levels share 2-30 and differ by `mode`.
+  // Reciprocals: difficulty = direction, not range, so both levels share 1-30 and differ by `mode`.
   // `label` / `note` override the auto-built range text on the picker pills.
   recip: {
-    easy: { min: 2, max: 30, mode: 'fwd', secs: 10, label: 'Fraction → %', note: 'You get <b>1/7</b>, type the percentage (14.28).' },
-    difficult: { min: 2, max: 30, mode: 'rev', secs: 13, label: '% → Fraction', note: 'You get <b>14.28%</b>, type the number under the 1 (7).' }
+    easy: { min: 1, max: 30, mode: 'fwd', secs: 10, label: 'Fraction → %', note: 'Numbers from <b>1–30</b>. You get <b>1/7</b>, type the percentage (14.28).' },
+    difficult: { min: 1, max: 30, mode: 'rev', secs: 13, label: '% → Fraction', note: 'Numbers from <b>1–30</b>. You get <b>14.28%</b>, type the number under the 1 (7).' }
   }
 };
 // Order the levels appear in the picker. A skill only shows the ones it has presets for.
@@ -166,11 +166,11 @@ nameInput.addEventListener('keydown', (e) => {
 // TrendChart.mount() against it.
 
 // ---------- dashboard rendering (real data — sessions + skillConfig) ----------
-const SKILL_ICON = { half:'÷2', x2:'×2', x3:'×3', add:'+', sq:'n²', cube:'n³', table:'n×', recip:'1/n' };
+const SKILL_ICON = { half:'÷2', x2:'×2', x3:'×3', add:'+', sq:'x²', cube:'x³', table:'6×7', recip:'1/n' };
 const SKILL_CLASS = { half:'c-half', x2:'c-x2', x3:'c-x3', add:'c-add', sq:'c-sq', cube:'c-cube', table:'c-table', recip:'c-recip' };
 const SKILL_DESC = { half:'Split a number in two', x2:'Double it', x3:'Triple it', add:'Add several numbers together',
   sq:'Square the number', cube:'Cube the number', table:'Recall multiplication tables', recip:'1/n as a percentage' };
-const SKILL_COLOR = { half:'#3B6FE0', x2:'#1F9D6C', x3:'#DB8B1E', add:'#A6459B', sq:'#D4503F', cube:'#0E9AA7', table:'#7A5AF0', recip:'#C2417A' };
+const SKILL_COLOR = { half:'#3B6FE0', x2:'#1F9D6C', x3:'#DB8B1E', add:'#A6459B', sq:'#C6473A', cube:'#2E8FA6', table:'#6C63C6', recip:'#7E9A22' };   // keep in sync with --sk-* in style.css
 // Which home-screen grid (element id in index.html) each skill's card goes into.
 const SKILL_GROUPS = {
   skillGrid: ['half','x2','x3','add'],
@@ -476,6 +476,50 @@ function isSelectionReady(){
   return true;
 }
 
+// How many questions a skill + range can give without repeating a number. Greyed-out question
+// counts above this keep the no-repeat promise (and the 1–30 reciprocals from running dry).
+function questionPoolSize(key, cfg){
+  const lo = Math.min(cfg.min, cfg.max), hi = Math.max(cfg.min, cfg.max);
+  const parity = cfg.parity || 'any';
+  if(key === 'add') return Infinity;
+  if(key === 'recip') return Math.max(0, Math.min(30, hi) - Math.max(1, lo) + 1);
+  if(key === 'table') return countPoolSize(lo, hi, parity) * 8;   // x from the range, n from 2-9
+  return countPoolSize(lo, hi, parity);
+}
+function pickerMaxQuestions(){
+  if(!pickerLevel) return Infinity;
+  let cfg;
+  if(pickerLevel === 'custom') cfg = pickerCustom;
+  else {
+    const p = DIFFICULTY_PRESETS[CURRENT_SKILL][pickerLevel];
+    cfg = { min: p.min, max: p.max, parity: skillConfig[CURRENT_SKILL].parity || 'any' };
+  }
+  if(!Number.isFinite(cfg.min) || !Number.isFinite(cfg.max) || cfg.min >= cfg.max) return Infinity;  // invalid custom: Start is blocked anyway
+  return questionPoolSize(CURRENT_SKILL, cfg);
+}
+// Greys out (and disables) question counts that are too big for the chosen level/range.
+function applyQcountLimits(){
+  const max = pickerMaxQuestions();
+  const opts = [...qcountBar.querySelectorAll('.qcount-opt')].filter(o => o !== qcountCustomBtn);
+  opts.forEach(o => { o.disabled = parseInt(o.dataset.n, 10) > max; });
+  qcountInlineValue.max = Number.isFinite(max) ? max : '';
+  if(selectedQuestionCount > max){
+    const ok = opts.filter(o => !o.disabled).pop();   // largest preset that still fits
+    qcountBar.querySelectorAll('.qcount-opt').forEach(o => o.classList.remove('active'));
+    if(ok){
+      ok.classList.add('active');
+      qcountCustomBtn.classList.remove('expanded');
+      qcountBar.classList.remove('custom-active');
+      selectedQuestionCount = parseInt(ok.dataset.n, 10);
+    } else {                                           // even 15 is too many: fall back to the custom box
+      qcountCustomBtn.classList.add('active', 'expanded');
+      qcountBar.classList.add('custom-active');
+      qcountInlineValue.value = max;
+      selectedQuestionCount = max;
+    }
+  }
+}
+
 function updateStartStrip(){
   const ready = isSelectionReady();
   btnStartRound.disabled = !ready;
@@ -486,6 +530,7 @@ function updateStartStrip(){
   } else {
     dssSub.textContent = LEVEL_READY_MESSAGE[pickerLevel];
   }
+  applyQcountLimits();
 }
 
 function openDifficultyPicker(skillKey){
@@ -563,6 +608,7 @@ diffCardMount.addEventListener('click', (e) => {
     seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
     parityBtn.classList.add('active');
     pickerCustom.parity = parityBtn.dataset.v;
+    applyQcountLimits();
     return;
   }
 
@@ -638,7 +684,9 @@ qcountBar.querySelectorAll('.qcount-opt').forEach(opt => {
 });
 qcountInlineValue.addEventListener('click', (e) => e.stopPropagation());
 qcountInlineValue.addEventListener('input', () => {
-  const v = parseInt(qcountInlineValue.value, 10);
+  let v = parseInt(qcountInlineValue.value, 10);
+  const max = pickerMaxQuestions();
+  if(v > max){ v = max; qcountInlineValue.value = max; }
   if(v > 0) selectedQuestionCount = v;
 });
 
@@ -731,7 +779,7 @@ function matchingDifficultyForConfig(key, cfg){
   const matches = (preset) => {
     if(cfg.min !== preset.min || cfg.max !== preset.max) return false;
     if(key === 'add' && (cfg.count || 2) !== (preset.count || 2)) return false;
-    if(preset.mode && cfg.mode !== preset.mode) return false;
+    if(preset.mode && (cfg.mode || 'fwd') !== preset.mode) return false;
     return true;
   };
   for(const diffKey of Object.keys(presets)){

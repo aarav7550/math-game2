@@ -21,7 +21,7 @@ function decimalAdditionQuestion(nums){
 // 1/n as a percentage. Where two roundings are both accepted (16.66 / 16.67), both are listed;
 // the first one is the one shown on screen in the reverse mode and in the "right answer" reveal.
 const RECIPROCALS = {
-  2:[50], 3:[33.33], 4:[25], 5:[20], 6:[16.66,16.67], 7:[14.28,14.29], 8:[12.5], 9:[11.11],
+  1:[100], 2:[50], 3:[33.33], 4:[25], 5:[20], 6:[16.66,16.67], 7:[14.28,14.29], 8:[12.5], 9:[11.11],
   10:[10], 11:[9.09], 12:[8.33], 13:[7.69], 14:[7.14], 15:[6.66,6.67], 16:[6.25], 17:[5.88],
   18:[5.56], 19:[5.26], 20:[5], 21:[4.76], 22:[4.55], 23:[4.35], 24:[4.16,4.17], 25:[4],
   26:[3.84,3.85], 27:[3.7], 28:[3.57], 29:[3.45], 30:[3.33]
@@ -117,7 +117,7 @@ const SKILLS = {
     hasDecimals: true,   // forward mode has answers like 14.28 (drives the one-time hint popup)
     gen(){
       const cfg = activeConfig('recip');
-      let min = Math.max(2, Math.min(cfg.min, cfg.max)), max = Math.min(30, Math.max(cfg.min, cfg.max));
+      let min = Math.max(1, Math.min(cfg.min, cfg.max)), max = Math.min(30, Math.max(cfg.min, cfg.max));
       const n = drawUnique('recip', min, max, 'any');
       const vals = RECIPROCALS[n];
       if(cfg.mode === 'rev'){
