@@ -21,6 +21,14 @@ btnConfirmExit.addEventListener('click', () => {
   showView('home');
 });
 
+// Esc during a round opens the "Leave this round?" popup (it does not leave by itself);
+// Esc again while that popup is open is the same as "Stay".
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Escape' || e.repeat) return;
+  if(exitModal.classList.contains('show')){ btnCancelExit.click(); return; }
+  if(state.running && views.play.classList.contains('active')) btnExitRound.click();
+});
+
 function pauseRoundForModal(){
   if(state.perSkillTimer) clearTimeout(state.perSkillTimer);
   const computed = getComputedStyle(timerFill).transform;
@@ -41,8 +49,53 @@ function endRoundAbruptly(){
   btnHistory.disabled = false;
 }
 
+// ---------- one-time "no need to type the decimal point" hint ----------
+// Shown the first time each applicable skill (Halving, Additions) is played, then never again
+// on that device. Add `hasDecimals: true` to a skill in skills.js to include it.
+const DECIMAL_HINT_KEY = 'numbers_decimalHintSeen';
+const DECIMAL_HINT_EXAMPLES = {
+  half: { q: 'Half of 483', a: '241.5', whole: '241', rest: '5' },
+  add:  { q: '12.5 + 3.7',  a: '16.2',  whole: '16',  rest: '2' }
+};
+const decimalHintModal = document.getElementById('decimalHintModal');
+const hintShownThisSession = {};   // backup in case localStorage is blocked
+
+function savedDecimalHints(){
+  try { return JSON.parse(localStorage.getItem(DECIMAL_HINT_KEY)) || {}; } catch(e){ return {}; }
+}
+function roundSkillKeys(){
+  if(pendingChallenge) return pendingChallenge.included;
+  if(state.skill === 'mixed') return includedSkillList();
+  return [state.skill];
+}
+function unseenDecimalSkills(){
+  const saved = savedDecimalHints();
+  return roundSkillKeys().filter(k => SKILLS[k] && SKILLS[k].hasDecimals && !saved[k] && !hintShownThisSession[k]);
+}
+function showDecimalHint(skills){
+  const ex = DECIMAL_HINT_EXAMPLES[skills[0]] || DECIMAL_HINT_EXAMPLES.half;
+  document.getElementById('dhQ').textContent = ex.q;
+  document.getElementById('dhA').textContent = ex.a;
+  document.getElementById('dhWhole').textContent = ex.whole;
+  document.getElementById('dhRest').textContent = ex.rest;
+  decimalHintModal.dataset.skills = skills.join(',');
+  decimalHintModal.classList.add('show');
+}
+document.getElementById('btnDecimalHintOk').addEventListener('click', () => {
+  const skills = (decimalHintModal.dataset.skills || '').split(',').filter(Boolean);
+  const saved = savedDecimalHints();
+  skills.forEach(k => { saved[k] = true; hintShownThisSession[k] = true; });
+  try { localStorage.setItem(DECIMAL_HINT_KEY, JSON.stringify(saved)); } catch(e){}
+  decimalHintModal.classList.remove('show');
+  startRound();   // the round that was waiting for the hint starts now
+});
+
 // ---------- round logic ----------
 function startRound(){
+  // First time on a skill with decimal answers: show the hint first, round starts after "Got it".
+  const hintSkills = unseenDecimalSkills();
+  if(hintSkills.length){ showDecimalHint(hintSkills); return; }
+
   state.currentIndex = 0;
   state.correctCount = 0;
   state.times = [];
@@ -146,13 +199,22 @@ function runTimerBar(){
 }
 
 // ---------- live-checking input ----------
-answerInput.addEventListener('input', () => {
+answerInput.addEventListener('input', (e) => {
   if(!state.running || state.awaitingAdvance) return;
   const raw = answerInput.value.trim();
   if(raw === '' || raw === '-') return;
   const value = Number(raw);
-  if(!Number.isNaN(value) && value === state.currentProblem.answer){
+  const answer = state.currentProblem.answer;
+  if(!Number.isNaN(value) && value === answer){
     lockInAnswer(value);
+    return;
+  }
+  // Auto-decimal (iPhone numpads have no "."): if the answer has decimals and the whole
+  // number typed so far is exactly the answer's whole-number part, add the point for them.
+  // Skipped while deleting, otherwise the player could never backspace over the point.
+  const deleting = e && e.inputType && e.inputType.indexOf('delete') === 0;
+  if(!deleting && !Number.isInteger(answer) && /^\d+$/.test(raw) && value === Math.trunc(answer)){
+    answerInput.value = raw + '.';
   }
 });
 

@@ -1,3 +1,13 @@
+/* Self-hosted fonts (files in /fonts) so the app looks the same offline. Latin only. */
+@font-face{
+  font-family:'Inter'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url('fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Sora'; font-style:normal; font-weight:100 800; font-display:swap;
+  src:url('fonts/sora-latin-wght-normal.woff2') format('woff2');
+}
+
   :root{
     --bg:#F7FBFD;
     --card:#FFFFFF;
@@ -1079,6 +1089,15 @@
   .modal-box .btn-ghost{ background:none; border:1px solid var(--line); color:var(--ink); }
   .modal-box .btn-ghost:hover{ background:var(--line-soft); }
   .modal-box .btn-primary{ background:var(--primary); border:none; color:#fff; font-weight:700; }
+
+  /* one-time decimal-answers hint popup */
+  .dh-title{ font-size:15.5px; font-weight:700; color:var(--ink); margin-bottom:8px; }
+  .modal-box p.dh-text{ margin-bottom:12px; }
+  .dh-example{
+    background:var(--line-soft); border-radius:10px; padding:10px 12px;
+    font-size:13.5px; line-height:1.5; color:var(--ink); margin-bottom:16px;
+  }
+  .dh-example .dh-eq{ display:block; font-weight:700; margin-bottom:2px; }
 
   .practice-toggle{
     display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-dim);

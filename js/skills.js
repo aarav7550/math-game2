@@ -2,10 +2,26 @@
 // SKILLS.JS — skill generators, difficulty draw helpers, state, DOM refs
 // ============================================================
 
+// ---------- decimal additions ----------
+// Turns a set of whole numbers into a question where one, two, or all of them get a
+// decimal part (one place, 1-9 tenths). Sums are done in tenths (whole numbers) and divided
+// by 10 once at the end, so answers like 16.8 are exact and match what the player types.
+function decimalAdditionQuestion(nums){
+  const n = nums.length;
+  const options = [...new Set([1, Math.min(2, n), n])];   // how many numbers get decimals
+  const howMany = options[randInt(0, options.length - 1)];
+  const chosen = new Set();
+  while(chosen.size < howMany) chosen.add(randInt(0, n - 1));
+  const tenths = nums.map((v, i) => v * 10 + (chosen.has(i) ? randInt(1, 9) : 0));
+  const text = tenths.map((t, i) => chosen.has(i) ? (t / 10).toFixed(1) : String(nums[i])).join(' + ');
+  return { text, answer: tenths.reduce((a, b) => a + b, 0) / 10 };
+}
+
 // ---------- skill generators ----------
 const SKILLS = {
   half: {
     label: 'Halving',
+    hasDecimals: true,   // odd numbers give answers like 241.5 (drives the one-time hint popup)
     gen(){
       const cfg = activeConfig('half');
       let min = Math.max(1, Math.min(cfg.min, cfg.max));
@@ -34,11 +50,17 @@ const SKILLS = {
   },
   add: {
     label: 'Additions',
+    hasDecimals: true,   // some questions have decimal numbers (drives the one-time hint popup)
     gen(){
       const cfg = activeConfig('add');
       let min = Math.min(cfg.min,cfg.max), max = Math.max(cfg.min,cfg.max);
       const count = cfg.count || 2;
       const nums = drawUniqueSet('add', min, max, cfg.parity, count);
+      // Chance of a decimal question comes from the level's preset (decimalPct in ui.js).
+      // Very Easy and Custom have none.
+      const level = matchingDifficultyForConfig('add', cfg);
+      const pct = ((DIFFICULTY_PRESETS.add || {})[level] || {}).decimalPct || 0;
+      if(pct > 0 && randInt(1, 100) <= pct) return decimalAdditionQuestion(nums);
       return { text: nums.join(' + '), answer: nums.reduce((a,b) => a+b, 0) };
     }
   }

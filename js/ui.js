@@ -4,11 +4,12 @@
 
 // ---------- difficulty presets ----------
 // Each preset fills range (+ count for additions); parity is left alone.
+// decimalPct (additions only) = % of questions that contain decimal numbers. Missing = never.
 const DIFFICULTY_PRESETS = {
   half: {
     veryeasy: { min: 1, max: 99, secs: 8 },
     easy: { min: 100, max: 299, secs: 10 },
-    difficult: { min: 100, max: 999, secs: 13 },
+    difficult: { min: 300, max: 999, secs: 13 },
     verydifficult: { min: 1000, max: 9999, secs: 20 }
   },
   x2: {
@@ -25,9 +26,9 @@ const DIFFICULTY_PRESETS = {
   },
   add: {
     veryeasy: { min: 1, max: 99, count: 2, secs: 9 },
-    easy: { min: 1, max: 999, count: 2, secs: 15 },
-    difficult: { min: 1, max: 999, count: 3, secs: 25 },
-    verydifficult: { min: 1, max: 9999, count: 4, secs: 30 }
+    easy: { min: 1, max: 999, count: 2, secs: 15, decimalPct: 20 },
+    difficult: { min: 1, max: 999, count: 3, secs: 25, decimalPct: 30 },
+    verydifficult: { min: 1, max: 9999, count: 4, secs: 30, decimalPct: 40 }
   }
 };
 // Custom ranges have no preset of their own, so they borrow the Difficult level's timer.
@@ -460,6 +461,23 @@ function closeDifficultyPicker(){
   diffModalOverlay.classList.remove('show');
 }
 document.getElementById('btnDiffClose').addEventListener('click', closeDifficultyPicker);
+
+// Desktop keyboard shortcuts for the difficulty picker: 1-5 pick a level (in the order shown,
+// 5 = Custom), Enter starts the round. Ignored while typing in a box (digits) or when a button
+// has focus (Enter already presses that button, so we must not also start the round).
+document.addEventListener('keydown', (e) => {
+  if(!diffModalOverlay.classList.contains('show')) return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target && e.target.tagName;
+  if(e.key >= '1' && e.key <= '5'){
+    if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+    const opt = diffCardMount.querySelectorAll('.diff-opt')[parseInt(e.key, 10) - 1];
+    if(opt){ e.preventDefault(); opt.click(); }
+  } else if(e.key === 'Enter'){
+    if(tag === 'BUTTON' || e.repeat) return;
+    if(!btnStartRound.disabled){ e.preventDefault(); btnStartRound.click(); }
+  }
+});
 diffModalOverlay.addEventListener('click', (e) => { if(e.target === diffModalOverlay) closeDifficultyPicker(); });
 
 diffCardMount.addEventListener('click', (e) => {

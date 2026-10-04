@@ -17,8 +17,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Numbers">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -789,6 +787,21 @@
     <div class="modal-actions">
       <button class="btn-ghost" id="btnCancelExit">Stay</button>
       <button class="btn-primary" id="btnConfirmExit">Leave</button>
+    </div>
+  </div>
+</div>
+
+<!-- one-time hint: decimal answers -->
+<div class="modal-overlay" id="decimalHintModal">
+  <div class="modal-box" role="dialog" aria-labelledby="dhTitle">
+    <div class="dh-title" id="dhTitle">No need to type the decimal point</div>
+    <p class="dh-text">Some answers have decimals. Type the whole-number part and the point is added for you, then type the rest.</p>
+    <div class="dh-example">
+      <span class="dh-eq"><span id="dhQ"></span> = <b id="dhA"></b></span>
+      Type <b id="dhWhole"></b>, the point appears, then type <b id="dhRest"></b>.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btnDecimalHintOk">Got it</button>
     </div>
   </div>
 </div>
