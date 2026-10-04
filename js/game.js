@@ -47,7 +47,8 @@ function endRoundAbruptly(){
 const DECIMAL_HINT_KEY = 'numbers_decimalHintSeen';
 const DECIMAL_HINT_EXAMPLES = {
   half: { q: 'Half of 483', a: '241.5', whole: '241', rest: '5' },
-  add:  { q: '12.5 + 3.7',  a: '16.2',  whole: '16',  rest: '2' }
+  add:  { q: '12.5 + 3.7',  a: '16.2',  whole: '16',  rest: '2' },
+  recip:{ q: '1/8 in %',    a: '12.5',  whole: '12',  rest: '5' }
 };
 const decimalHintModal = document.getElementById('decimalHintModal');
 const hintShownThisSession = {};   // backup in case localStorage is blocked
@@ -147,6 +148,12 @@ function pickSkillKey(){
   return state.skill;
 }
 
+// A problem may accept several answers (e.g. 16.66 or 16.67): problem.answers lists them all.
+function matchesAnswer(problem, value){
+  const list = problem.answers || [problem.answer];
+  return list.some(a => value === a);
+}
+
 function nextQuestion(){
   if(state.currentIndex >= state.totalQuestions){
     finishRound();
@@ -207,7 +214,7 @@ answerInput.addEventListener('input', (e) => {
   if(raw === '' || raw === '-') return;
   const value = Number(raw);
   const answer = state.currentProblem.answer;
-  if(!Number.isNaN(value) && value === answer){
+  if(!Number.isNaN(value) && matchesAnswer(state.currentProblem, value)){
     lockInAnswer(value);
     return;
   }
@@ -236,13 +243,14 @@ function lockInAnswer(value){
   if(state.perSkillTimer) clearTimeout(state.perSkillTimer);
 
   const elapsed = performance.now() - state.questionStart;
-  const correct = value !== null && !Number.isNaN(value) && Number(value) === state.currentProblem.answer;
+  const correct = value !== null && !Number.isNaN(value) && matchesAnswer(state.currentProblem, Number(value));
 
   state.times.push(elapsed);
   state.records.push({
     skillKey: state.currentSkillKey,
     text: state.currentProblem.text,
     answer: state.currentProblem.answer,
+    answerText: state.currentProblem.answerText || null,
     given: (value === null || Number.isNaN(value)) ? null : value,
     correct: correct,
     timeMs: elapsed
@@ -255,7 +263,7 @@ function lockInAnswer(value){
     state.streak = 0;
     answerInput.classList.add('flash-bad');
     problemText.classList.add('shake');
-    correctRevealNum.textContent = state.currentProblem.answer;
+    correctRevealNum.textContent = state.currentProblem.answerText || state.currentProblem.answer;
     correctReveal.classList.add('show');
   }
   // TODO (Step 3b): update streak display in Play's meta-chip row here
@@ -386,7 +394,7 @@ function renderResultsBreakdown(){
       const youStr = r.given === null ? 'no answer' : String(r.given);
       row.innerHTML = `
         <span class="dr-problem">${r.text}${tag(r)}</span>
-        <span class="miss-nums"><span class="you">you: ${youStr}</span><span class="correct">right: ${r.answer}</span></span>
+        <span class="miss-nums"><span class="you">you: ${youStr}</span><span class="correct">right: ${r.answerText || r.answer}</span></span>
       `;
       missedList.appendChild(row);
     });
@@ -401,6 +409,9 @@ function describeSkillConfig(key, cfg){
   const diff = difficultyLabels[matchingDifficultyForConfig(key, cfg)];
   if(key === 'add'){
     return `${skillDisplayLabels[key]}: ${diff} (${cfg.min}–${cfg.max}, ${cfg.count || 2} numbers, ${cfg.parity})`;
+  }
+  if(key === 'recip'){
+    return `${skillDisplayLabels[key]}: ${diff} (${cfg.mode === 'rev' ? '% → fraction' : 'fraction → %'})`;
   }
   return `${skillDisplayLabels[key]}: ${diff} (${cfg.min}–${cfg.max}, ${cfg.parity})`;
 }

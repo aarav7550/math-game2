@@ -29,11 +29,39 @@ const DIFFICULTY_PRESETS = {
     easy: { min: 1, max: 999, count: 2, secs: 15, decimalPct: 20 },
     difficult: { min: 1, max: 999, count: 3, secs: 25, decimalPct: 30 },
     verydifficult: { min: 1, max: 9999, count: 4, secs: 30, decimalPct: 40 }
+  },
+  // Square / Cube have no Very Difficult yet - a skill only shows the levels listed here.
+  sq: {
+    veryeasy: { min: 1, max: 15, secs: 5 },
+    easy: { min: 16, max: 30, secs: 8 },
+    difficult: { min: 31, max: 100, secs: 20 }
+  },
+  cube: {
+    veryeasy: { min: 1, max: 15, secs: 8 },
+    easy: { min: 16, max: 30, secs: 10 },
+    difficult: { min: 31, max: 100, secs: 30 }
+  },
+  // Tables: asks x × n, x from the range, n from 2-9.
+  table: {
+    veryeasy: { min: 1, max: 10, secs: 8 },
+    easy: { min: 11, max: 20, secs: 10 },
+    difficult: { min: 21, max: 30, secs: 15 },
+    verydifficult: { min: 31, max: 40, secs: 18 }
+  },
+  // Reciprocals: difficulty = direction, not range, so both levels share 2-30 and differ by `mode`.
+  // `label` / `note` override the auto-built range text on the picker pills.
+  recip: {
+    easy: { min: 2, max: 30, mode: 'fwd', secs: 10, label: 'Fraction → %', note: 'You get <b>1/7</b>, type the percentage (14.28).' },
+    difficult: { min: 2, max: 30, mode: 'rev', secs: 13, label: '% → Fraction', note: 'You get <b>14.28%</b>, type the number under the 1 (7).' }
   }
 };
+// Order the levels appear in the picker. A skill only shows the ones it has presets for.
+const DIFF_ORDER = ['veryeasy','easy','difficult','verydifficult'];
+// Skills with no Custom option (Reciprocals has no range worth customising).
+const NO_CUSTOM = { recip: true };
 // Custom ranges have no preset of their own, so they borrow the Difficult level's timer.
 const CUSTOM_TIMER_LEVEL = 'difficult';
-const skillDisplayLabels = { half:'Halving', x2:'× 2', x3:'× 3', add:'Additions' };
+const skillDisplayLabels = { half:'Halving', x2:'× 2', x3:'× 3', add:'Additions', sq:'Square', cube:'Cube', table:'Tables', recip:'Reciprocals' };
 
 // ---------- more-options menu (About us / Report a bug) ----------
 const btnMoreMenu = document.getElementById('btnMoreMenu');
@@ -138,10 +166,17 @@ nameInput.addEventListener('keydown', (e) => {
 // TrendChart.mount() against it.
 
 // ---------- dashboard rendering (real data — sessions + skillConfig) ----------
-const SKILL_ICON = { half:'÷2', x2:'×2', x3:'×3', add:'+' };
-const SKILL_CLASS = { half:'c-half', x2:'c-x2', x3:'c-x3', add:'c-add' };
-const SKILL_DESC = { half:'Split a number in two', x2:'Double it', x3:'Triple it', add:'Add several numbers together' };
-const SKILL_COLOR = { half:'#3B6FE0', x2:'#1F9D6C', x3:'#DB8B1E', add:'#A6459B' };
+const SKILL_ICON = { half:'÷2', x2:'×2', x3:'×3', add:'+', sq:'n²', cube:'n³', table:'n×', recip:'1/n' };
+const SKILL_CLASS = { half:'c-half', x2:'c-x2', x3:'c-x3', add:'c-add', sq:'c-sq', cube:'c-cube', table:'c-table', recip:'c-recip' };
+const SKILL_DESC = { half:'Split a number in two', x2:'Double it', x3:'Triple it', add:'Add several numbers together',
+  sq:'Square the number', cube:'Cube the number', table:'Recall multiplication tables', recip:'1/n as a percentage' };
+const SKILL_COLOR = { half:'#3B6FE0', x2:'#1F9D6C', x3:'#DB8B1E', add:'#A6459B', sq:'#D4503F', cube:'#0E9AA7', table:'#7A5AF0', recip:'#C2417A' };
+// Which home-screen grid (element id in index.html) each skill's card goes into.
+const SKILL_GROUPS = {
+  skillGrid: ['half','x2','x3','add'],
+  skillGridPowers: ['sq','cube'],
+  skillGridRecall: ['table','recip']
+};
 
 function renderDashboardStats(){
   const streak = computeHomeStreak();
@@ -206,9 +241,12 @@ function renderDashboardStats(){
 }
 
 function renderSkillCards(){
-  const grid = document.getElementById('skillGrid');
+  Object.keys(SKILL_GROUPS).forEach(id => renderSkillGrid(id, SKILL_GROUPS[id]));
+}
+function renderSkillGrid(gridId, keys){
+  const grid = document.getElementById(gridId);
   grid.innerHTML = '';
-  SKILL_ORDER.forEach(key => {
+  keys.forEach(key => {
     const skillSessions = sessions.filter(s => s.skill === key);
     const hasData = skillSessions.length > 0;
     const avg = hasData ? skillSessions.reduce((a,s) => a+s.avgTime, 0) / skillSessions.length : null;
@@ -219,6 +257,7 @@ function renderSkillCards(){
     const card = document.createElement('button');
     card.className = 'skill-card ' + SKILL_CLASS[key];
     card.dataset.skill = key;
+    card.style.setProperty('--sc', SKILL_COLOR[key]);
     card.innerHTML = `
       <div class="sk-top">
         <div class="sk-icon">${SKILL_ICON[key]}</div>
@@ -260,10 +299,12 @@ function renderHomeDashboard(){
 }
 renderHomeDashboard();
 
-document.getElementById('skillGrid').addEventListener('click', (e) => {
-  const card = e.target.closest('.skill-card');
-  if(!card || card.classList.contains('soon')) return;
-  openDifficultyPicker(card.dataset.skill);
+Object.keys(SKILL_GROUPS).forEach(id => {
+  document.getElementById(id).addEventListener('click', (e) => {
+    const card = e.target.closest('.skill-card');
+    if(!card || card.classList.contains('soon')) return;
+    openDifficultyPicker(card.dataset.skill);
+  });
 });
 
 document.getElementById('historyCard').addEventListener('click', () => {
@@ -287,7 +328,10 @@ const CUSTOM_NOTE = {
   half: 'Pick your own min/max and number type before you start.',
   x2: 'Pick your own min/max before you start.',
   x3: 'Pick your own min/max before you start.',
-  add: 'Pick your own min/max and how many numbers to add.'
+  add: 'Pick your own min/max and how many numbers to add.',
+  sq: 'Pick your own min/max and number type before you start.',
+  cube: 'Pick your own min/max and number type before you start.',
+  table: 'Pick the range for the first number (it is multiplied by 2–9).'
 };
 const LEVEL_READY_MESSAGE = {
   veryeasy: 'Easing in, nice and steady.',
@@ -316,6 +360,7 @@ const qcountInlineValue = document.getElementById('qcountInlineValue');
 // Range label shown on each preset pill, built from the real DIFFICULTY_PRESETS.
 function presetLabel(skillKey, level){
   const p = DIFFICULTY_PRESETS[skillKey][level];
+  if(p.label) return p.label;
   if(skillKey === 'add') return `${p.min}–${p.max}, ${p.count} numbers`;
   return `${p.min}–${p.max}`;
 }
@@ -323,6 +368,7 @@ function presetLabel(skillKey, level){
 // plain factual one from the actual numbers instead of inventing copy that might mislead.
 function presetNote(skillKey, level){
   const p = DIFFICULTY_PRESETS[skillKey][level];
+  if(p.note) return p.note;
   if(skillKey === 'add') return `Add <b>${p.count} numbers</b> from ${p.min}–${p.max}.`;
   return `Numbers from <b>${p.min}–${p.max}</b>.`;
 }
@@ -381,23 +427,31 @@ function buildConfigCard(skillKey){
     </div>`;
   }
 
-  const card = document.createElement('div');
-  card.className = 'diff-card';
-  card.dataset.skill = skillKey;
-  card.innerHTML = `
-    <div class="diff-rows">
-      <div class="diff-row pair">${pillHtml('veryeasy')}${pillHtml('easy')}</div>
-      <div class="diff-row pair">${pillHtml('difficult')}${pillHtml('verydifficult')}</div>
-      <div class="diff-row single">
+  // Only the levels this skill has presets for, plus Custom unless the skill opts out.
+  // Buttons are laid out two per row; an odd one out gets a row to itself.
+  const customPill = `
         <button class="diff-opt ${isCustom?'active':''}" data-level="custom">
           <div class="do-name">Custom</div>
           <div class="do-range">Set your own</div>
           <span class="info-btn" onclick="event.stopPropagation(); toggleNote(this)">
             <span class="info-dot">i</span>
-            <span class="info-note"><span class="in-arrow"></span>${CUSTOM_NOTE[skillKey]}</span>
+            <span class="info-note"><span class="in-arrow"></span>${CUSTOM_NOTE[skillKey] || ''}</span>
           </span>
-        </button>
-      </div>
+        </button>`;
+  const pills = DIFF_ORDER.filter(l => DIFFICULTY_PRESETS[skillKey][l]).map(pillHtml);
+  if(!NO_CUSTOM[skillKey]) pills.push(customPill);
+  let rowsHtml = '';
+  for(let i = 0; i < pills.length; i += 2){
+    const chunk = pills.slice(i, i + 2);
+    rowsHtml += `<div class="diff-row ${chunk.length === 2 ? 'pair' : 'single'}">${chunk.join('')}</div>`;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'diff-card';
+  card.dataset.skill = skillKey;
+  card.innerHTML = `
+    <div class="diff-rows">
+      ${rowsHtml}
     </div>
     <div class="custom-editor ${isCustom?'show':''}">
       <div class="config-rows">${customRowsHtml}</div>
@@ -656,6 +710,7 @@ btnStartRound.addEventListener('click', () => {
     skillConfig[key].min = preset.min;
     skillConfig[key].max = preset.max;
     if(key === 'add' && preset.count) skillConfig[key].count = preset.count;
+    if(preset.mode) skillConfig[key].mode = preset.mode;
   }
   saveConfig();
 
@@ -676,6 +731,7 @@ function matchingDifficultyForConfig(key, cfg){
   const matches = (preset) => {
     if(cfg.min !== preset.min || cfg.max !== preset.max) return false;
     if(key === 'add' && (cfg.count || 2) !== (preset.count || 2)) return false;
+    if(preset.mode && cfg.mode !== preset.mode) return false;
     return true;
   };
   for(const diffKey of Object.keys(presets)){
