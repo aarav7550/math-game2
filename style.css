@@ -24,14 +24,6 @@
     --feature-accent-dim:#8FA3BD;
     --navy-1:#121826;
 
-    --sk-half: #3B6FE0;   --sk-half-soft: #E8EFFD;
-    --sk-x2:   #1F9D6C;   --sk-x2-soft:   #E6F6EE;
-    --sk-x3:   #DB8B1E;   --sk-x3-soft:   #FCEFDC;
-    --sk-add:  #A6459B;   --sk-add-soft:  #F8E9F6;
-    --sk-sq:   #C6473A;   --sk-sq-soft:   #FBE9E7;
-    --sk-cube: #2E8FA6;   --sk-cube-soft: #E4F4F8;
-    --sk-table:#6C63C6;   --sk-table-soft:#ECEAFA;
-    --sk-recip:#7E9A22;   --sk-recip-soft:#F0F5DC;
 
     --primary:#007EA7;
     --good:#1F9D6C;
@@ -201,14 +193,6 @@
   .sk-nums .num{ font-family:'Sora',sans-serif; font-weight:700; font-size:14px; }
   .sk-nums .lbl{ font-size:9px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.02em; }
 
-  .c-half{ --accent-c:var(--sk-half); } .c-half .sk-icon{background:var(--sk-half-soft); color:var(--sk-half);} .c-half .sk-progress-fill{background:var(--sk-half);}
-  .c-x2{ --accent-c:var(--sk-x2); }     .c-x2 .sk-icon{background:var(--sk-x2-soft); color:var(--sk-x2);}     .c-x2 .sk-progress-fill{background:var(--sk-x2);}
-  .c-x3{ --accent-c:var(--sk-x3); }     .c-x3 .sk-icon{background:var(--sk-x3-soft); color:var(--sk-x3);}     .c-x3 .sk-progress-fill{background:var(--sk-x3);}
-  .c-add{ --accent-c:var(--sk-add); }   .c-add .sk-icon{background:var(--sk-add-soft); color:var(--sk-add);}   .c-add .sk-progress-fill{background:var(--sk-add);}
-  .c-sq{ --accent-c:var(--sk-sq); }     .c-sq .sk-icon{background:var(--sk-sq-soft); color:var(--sk-sq);}     .c-sq .sk-progress-fill{background:var(--sk-sq);}
-  .c-cube{ --accent-c:var(--sk-cube); } .c-cube .sk-icon{background:var(--sk-cube-soft); color:var(--sk-cube);} .c-cube .sk-progress-fill{background:var(--sk-cube);}
-  .c-table{ --accent-c:var(--sk-table); } .c-table .sk-icon{background:var(--sk-table-soft); color:var(--sk-table);} .c-table .sk-progress-fill{background:var(--sk-table);}
-  .c-recip{ --accent-c:var(--sk-recip); } .c-recip .sk-icon{background:var(--sk-recip-soft); color:var(--sk-recip);} .c-recip .sk-progress-fill{background:var(--sk-recip);}
 
   .skill-card.soon{ border-style:dashed; cursor:default; }
   .skill-card.soon:hover{ box-shadow:none; transform:none; }
@@ -1257,14 +1241,6 @@
   #view-challenge .cc-skill-toggle:hover{ box-shadow:0 6px 18px rgba(0,0,0,0.08); transform:translateY(-1px); }
   #view-challenge .cc-skill-toggle:active{ transform:translateY(0) scale(0.98); }
   #view-challenge .cc-skill-toggle:focus-visible{ outline:2px solid var(--sc); outline-offset:2px; }
-  #view-challenge .cc-skill-toggle[data-skill="half"]{ --sc: var(--half); }
-  #view-challenge .cc-skill-toggle[data-skill="x2"]{ --sc: var(--x2); }
-  #view-challenge .cc-skill-toggle[data-skill="x3"]{ --sc: var(--x3); }
-  #view-challenge .cc-skill-toggle[data-skill="add"]{ --sc: var(--add); }
-  #view-challenge .cc-skill-toggle[data-skill="sq"]{ --sc: var(--sk-sq); }
-  #view-challenge .cc-skill-toggle[data-skill="cube"]{ --sc: var(--sk-cube); }
-  #view-challenge .cc-skill-toggle[data-skill="table"]{ --sc: var(--sk-table); }
-  #view-challenge .cc-skill-toggle[data-skill="recip"]{ --sc: var(--sk-recip); }
   #view-challenge .cc-skill-toggle .cc-st-icon{ width:44px; height:44px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; background: color-mix(in srgb, var(--sc) 14%, #fff); color:var(--sc); position:relative; }
   #view-challenge .cc-skill-toggle .cc-st-icon .cc-st-check-badge{ position:absolute; bottom:-4px; right:-4px; width:18px; height:18px; border-radius:50%; background:var(--sc); border:2px solid var(--bg-card); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .12s ease; }
   #view-challenge .cc-skill-toggle.on .cc-st-icon .cc-st-check-badge{ opacity:1; }
@@ -1273,26 +1249,26 @@
   #view-challenge .cc-skill-toggle .cc-st-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:15px; color:var(--text); }
   #view-challenge .cc-skill-toggle .cc-st-desc{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
   #view-challenge .cc-skill-toggle.on{ border-color: var(--sc); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+  /* skill tiles: 3 columns on both. Phone and desktop rules stay in their own blocks. */
   @media (max-width: 640px){
-    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:1fr 1fr; gap:9px; }
-    #view-challenge .cc-skill-toggle{ padding:11px; gap:9px; border-radius:14px; flex-direction:column; align-items:flex-start; }
-    #view-challenge .cc-skill-toggle .cc-st-icon{ width:44px; height:44px; font-size:15px; border-radius:12px; }
-    #view-challenge .cc-skill-toggle .cc-st-name{ font-size:15.5px; color:#000; }
-    #view-challenge .cc-skill-toggle .cc-st-desc{ font-size:12.5px; }
+    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; }
+    #view-challenge .cc-skill-toggle{ padding:10px 8px; gap:7px; border-radius:14px; flex-direction:column; align-items:flex-start; }
+    #view-challenge .cc-skill-toggle .cc-st-icon{ width:40px; height:40px; font-size:14px; border-radius:11px; }
+    #view-challenge .cc-skill-toggle .cc-st-name{ font-size:13.5px; color:#000; }
+    #view-challenge .cc-skill-toggle .cc-st-desc{ display:none; }
+  }
+  @media (min-width: 641px){
+    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:repeat(3, 1fr); gap:12px; }
+    #view-challenge .cc-skill-toggle{ padding:14px; gap:10px; }
+    #view-challenge .cc-skill-toggle .cc-st-icon{ width:40px; height:40px; font-size:14px; }
+    #view-challenge .cc-skill-toggle .cc-st-name{ font-size:14.5px; }
+    #view-challenge .cc-skill-toggle .cc-st-desc{ font-size:11px; }
   }
   #view-challenge .cc-config-stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
   @media (min-width: 641px){
     #view-challenge .cc-config-stack{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
   }
   #view-challenge .cc-config-card{ --sc: var(--half); background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:var(--radius-md); padding:20px 18px 22px; }
-  #view-challenge .cc-config-card[data-skill="half"]{ --sc: var(--half); }
-  #view-challenge .cc-config-card[data-skill="x2"]{ --sc: var(--x2); }
-  #view-challenge .cc-config-card[data-skill="x3"]{ --sc: var(--x3); }
-  #view-challenge .cc-config-card[data-skill="add"]{ --sc: var(--add); }
-  #view-challenge .cc-config-card[data-skill="sq"]{ --sc: var(--sk-sq); }
-  #view-challenge .cc-config-card[data-skill="cube"]{ --sc: var(--sk-cube); }
-  #view-challenge .cc-config-card[data-skill="table"]{ --sc: var(--sk-table); }
-  #view-challenge .cc-config-card[data-skill="recip"]{ --sc: var(--sk-recip); }
   #view-challenge .cc-config-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
   #view-challenge .cc-config-title{ font-family:'Sora', sans-serif; font-size:14.5px; font-weight:700; }
   #view-challenge .cc-config-reset{ background:none; border:none; color:var(--text-faint); font-size:11px; font-weight:600; cursor:pointer; padding:4px 6px; border-radius:6px; }
@@ -1492,28 +1468,12 @@
   /* skills included: read-only chips */
   #view-challengedetails .cd-chip-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px; margin-bottom:28px; }
   #view-challengedetails .cd-chip{ --sc:var(--half); display:flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:12px; padding:10px 14px 10px 12px; }
-  #view-challengedetails .cd-chip[data-skill="half"]{ --sc:var(--half); }
-  #view-challengedetails .cd-chip[data-skill="x2"]{ --sc:var(--x2); }
-  #view-challengedetails .cd-chip[data-skill="x3"]{ --sc:var(--x3); }
-  #view-challengedetails .cd-chip[data-skill="add"]{ --sc:var(--add); }
-  #view-challengedetails .cd-chip[data-skill="sq"]{ --sc: var(--sk-sq); }
-  #view-challengedetails .cd-chip[data-skill="cube"]{ --sc: var(--sk-cube); }
-  #view-challengedetails .cd-chip[data-skill="table"]{ --sc: var(--sk-table); }
-  #view-challengedetails .cd-chip[data-skill="recip"]{ --sc: var(--sk-recip); }
   #view-challengedetails .cd-chip-icon{ width:30px; height:30px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; background:color-mix(in srgb, var(--sc) 14%, #fff); color:var(--sc); }
   #view-challengedetails .cd-chip-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:13.5px; color:var(--text); }
 
   /* per-skill settings cards: read-only rows */
   #view-challengedetails .cd-config-stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
   #view-challengedetails .cd-card{ --sc:var(--half); background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:var(--radius-md); padding:18px; }
-  #view-challengedetails .cd-card[data-skill="half"]{ --sc:var(--half); }
-  #view-challengedetails .cd-card[data-skill="x2"]{ --sc:var(--x2); }
-  #view-challengedetails .cd-card[data-skill="x3"]{ --sc:var(--x3); }
-  #view-challengedetails .cd-card[data-skill="add"]{ --sc:var(--add); }
-  #view-challengedetails .cd-card[data-skill="sq"]{ --sc: var(--sk-sq); }
-  #view-challengedetails .cd-card[data-skill="cube"]{ --sc: var(--sk-cube); }
-  #view-challengedetails .cd-card[data-skill="table"]{ --sc: var(--sk-table); }
-  #view-challengedetails .cd-card[data-skill="recip"]{ --sc: var(--sk-recip); }
   #view-challengedetails .cd-card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
   #view-challengedetails .cd-card-title{ font-family:'Sora', sans-serif; font-size:14.5px; font-weight:700; color:var(--text); }
   #view-challengedetails .cd-level-badge{ font-family:'Sora', sans-serif; font-size:10.5px; font-weight:700; color:var(--sc); background:color-mix(in srgb, var(--sc) 12%, #fff); padding:4px 10px; border-radius:999px; }

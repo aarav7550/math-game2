@@ -113,16 +113,9 @@ function decodeChallengeCode(code){
 }
 
 // ---------- skill config (persisted) ----------
-const DEFAULT_CONFIG = {
-  half: { min: 2, max: 198, parity: 'any' },      // parity applies to the number being halved
-  x2:   { min: 2, max: 99,  parity: 'any' },
-  x3:   { min: 2, max: 33,  parity: 'any' },
-  add: { min: 1, max: 99, count: 2, parity: 'any' },
-  sq:    { min: 2, max: 30, parity: 'any' },
-  cube:  { min: 2, max: 20, parity: 'any' },
-  table: { min: 2, max: 20, parity: 'any' },
-  recip: { min: 1, max: 30, mode: 'fwd' }   // mode: 'fwd' = 1/7 -> 14.28   'rev' = 14.28% -> 7
-};
+// Starting config per skill comes from SKILL_META in js/registry.js
+const DEFAULT_CONFIG = {};
+SKILL_ORDER.forEach(k => DEFAULT_CONFIG[k] = Object.assign({}, SKILL_META[k].defaults));
 const CONFIG_KEY = 'numbers_game_config_v1';
 function loadConfig(){
   try{
@@ -167,7 +160,8 @@ function activeIncludedList(){
 
 // ---------- which skills are included when "Mixed" is played ----------
 const INCLUDED_KEY = 'numbers_game_mixed_included_v1';
-const DEFAULT_INCLUDED = { half:true, x2:true, x3:true, add:true, sq:true, cube:true, table:true, recip:true };
+const DEFAULT_INCLUDED = {};
+SKILL_ORDER.forEach(k => DEFAULT_INCLUDED[k] = true);
 function loadMixedIncluded(){
   try{
     const raw = localStorage.getItem(INCLUDED_KEY);
@@ -209,7 +203,8 @@ function randWithParity(min, max, parity){
 // per skill; once the pool of values matching the current config is exhausted, it resets
 // that skill's tracking and starts a fresh no-repeat cycle (so small ranges cycle cleanly
 // instead of getting stuck retrying forever or being allowed to hard-repeat indefinitely).
-const usedThisRound = { half:new Set(), x2:new Set(), x3:new Set(), add:new Set(), sq:new Set(), cube:new Set(), table:new Set(), recip:new Set() };
+const usedThisRound = {};
+SKILL_ORDER.forEach(k => usedThisRound[k] = new Set());
 function resetUsedTracking(){
   Object.keys(usedThisRound).forEach(k => usedThisRound[k].clear());
 }

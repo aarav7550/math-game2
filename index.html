@@ -112,19 +112,8 @@
       </div>
     </div>
 
-    <div class="section-label">Arithmetic</div>
-    <div class="skill-grid" id="skillGrid">
-      <!-- skill cards rendered by js/ui.js from SKILL_ORDER + real session stats -->
-    </div>
-
-    <div class="section-label">Powers</div>
-    <div class="skill-grid" id="skillGridPowers">
-      <!-- cards rendered by js/ui.js -->
-    </div>
-
-    <div class="section-label">Tables &amp; Reciprocals</div>
-    <div class="skill-grid" id="skillGridRecall">
-      <!-- cards rendered by js/ui.js -->
+    <div id="skillSections">
+      <!-- sections + cards built by js/ui.js from the skill registry (js/registry.js) -->
     </div>
 
     <!-- challenge box: sits just above the Mixed drill strip -->
@@ -338,78 +327,7 @@
 
   <div class="cc-section-label">Skills to include</div>
   <div class="cc-skill-toggle-grid" id="ccSkillGrid">
-    <button class="cc-skill-toggle" data-skill="half">
-      <span class="cc-st-icon">÷2
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Halving</div>
-        <div class="cc-st-desc">Split a number in two</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="x2">
-      <span class="cc-st-icon">×2
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">× 2</div>
-        <div class="cc-st-desc">Double it</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="x3">
-      <span class="cc-st-icon">×3
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">× 3</div>
-        <div class="cc-st-desc">Triple it</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="add">
-      <span class="cc-st-icon">+
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Additions</div>
-        <div class="cc-st-desc">Add several numbers</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="sq">
-      <span class="cc-st-icon">x²
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Square</div>
-        <div class="cc-st-desc">Square the number</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="cube">
-      <span class="cc-st-icon">x³
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Cube</div>
-        <div class="cc-st-desc">Cube the number</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="table">
-      <span class="cc-st-icon">6×7
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Tables</div>
-        <div class="cc-st-desc">Recall multiplication tables</div>
-      </span>
-    </button>
-    <button class="cc-skill-toggle" data-skill="recip">
-      <span class="cc-st-icon">1/n
-        <span class="cc-st-check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-      </span>
-      <span class="cc-st-body">
-        <div class="cc-st-name">Reciprocals</div>
-        <div class="cc-st-desc">1/n as a percentage</div>
-      </span>
-    </button>
+    <!-- tiles built by js/challenge.js from the skill registry -->
   </div>
 
   <div class="cc-section-label" id="ccConfigSectionLabel">Per-skill difficulty</div>
@@ -850,6 +768,7 @@
 
 <input type="file" id="importFileInput" accept=".json" style="display:none;">
 
+<script src="js/registry.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/skills.js"></script>
 <script src="js/game.js"></script>
