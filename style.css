@@ -1237,7 +1237,7 @@
   #view-challenge .cc-page-sub{ color:var(--text-dim); font-size:14.5px; line-height:1.5; max-width:480px; margin-bottom:26px; }
   #view-challenge .cc-section-label{ font-family:'Sora', sans-serif; font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:12px; letter-spacing:0.01em; }
   #view-challenge .cc-skill-toggle-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px; margin-bottom:28px; }
-  #view-challenge .cc-skill-toggle{ --sc: var(--half); background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:12px; padding:10px 14px 10px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; text-align:left; position:relative; width:100%; transition: box-shadow .12s ease, border-color .12s ease, transform .1s ease, background .12s ease; }
+  #view-challenge .cc-skill-toggle{ --sc: var(--half); font-family:inherit; line-height:inherit; background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:12px; padding:10px 14px 10px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; text-align:left; position:relative; width:100%; transition: box-shadow .12s ease, border-color .12s ease, transform .1s ease, background .12s ease; }
   #view-challenge .cc-skill-toggle:hover{ box-shadow:0 6px 18px rgba(0,0,0,0.08); transform:translateY(-1px); }
   #view-challenge .cc-skill-toggle:active{ transform:translateY(0) scale(0.98); }
   #view-challenge .cc-skill-toggle:focus-visible{ outline:2px solid var(--sc); outline-offset:2px; }

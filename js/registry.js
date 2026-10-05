@@ -97,7 +97,7 @@ const SKILL_META = {
     customNote: 'Pick your own min/max and number type before you start.'
   },
   table: {
-    label: 'Tables', icon: '6×7', desc: 'Recall multiplication tables', color: '#6C63C6', group: 'recall',
+    label: 'Tables', icon: '3×7', desc: 'Recall multiplication tables', color: '#6C63C6', group: 'recall',
     defaults: { min: 2, max: 20, parity: 'any' },
     presets: {
       veryeasy: { min: 1, max: 10, secs: 8 },
@@ -109,7 +109,7 @@ const SKILL_META = {
     pool: (lo, hi, parity) => countPoolSize(lo, hi, parity) * 8   // x from the range, n from 2-9
   },
   recip: {
-    label: 'Reciprocals', icon: '1/n', desc: '1/n as a percentage', color: '#C59FC9', group: 'recall',
+    label: 'Reciprocals', icon: '1/n', desc: '1/n as a percentage', color: '#16BAC5', group: 'recall',
     defaults: { min: 1, max: 30, mode: 'fwd' },   // mode: 'fwd' = 1/7 -> 14.28   'rev' = 14.28% -> 7
     // difficulty = direction, not range, so both levels share 1-30 and differ by `mode`
     presets: {
