@@ -109,7 +109,7 @@ const SKILL_META = {
     pool: (lo, hi, parity) => countPoolSize(lo, hi, parity) * 8   // x from the range, n from 2-9
   },
   recip: {
-    label: 'Reciprocals', icon: '1/n', desc: '1/n as a percentage', color: '#A0643B', group: 'recall',
+    label: 'Reciprocals', icon: '1/n', desc: '1/n as a percentage', color: '#C59FC9', group: 'recall',
     defaults: { min: 1, max: 30, mode: 'fwd' },   // mode: 'fwd' = 1/7 -> 14.28   'rev' = 14.28% -> 7
     // difficulty = direction, not range, so both levels share 1-30 and differ by `mode`
     presets: {

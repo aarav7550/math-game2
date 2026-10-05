@@ -1236,33 +1236,22 @@
   #view-challenge .cc-topbar-inner{ position:relative; display:flex; align-items:center; justify-content:space-between; }
   #view-challenge .cc-page-sub{ color:var(--text-dim); font-size:14.5px; line-height:1.5; max-width:480px; margin-bottom:26px; }
   #view-challenge .cc-section-label{ font-family:'Sora', sans-serif; font-size:13px; font-weight:700; color:var(--text-dim); margin-bottom:12px; letter-spacing:0.01em; }
-  #view-challenge .cc-skill-toggle-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; margin-bottom:28px; }
-  #view-challenge .cc-skill-toggle{ --sc: var(--half); background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:18px; display:flex; align-items:center; gap:12px; cursor:pointer; text-align:left; position:relative; width:100%; transition: box-shadow .12s ease, border-color .12s ease, transform .1s ease, background .12s ease; }
+  #view-challenge .cc-skill-toggle-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px; margin-bottom:28px; }
+  #view-challenge .cc-skill-toggle{ --sc: var(--half); background:var(--bg-card); border:1px solid var(--border); border-left:4px solid var(--sc); border-radius:12px; padding:10px 14px 10px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; text-align:left; position:relative; width:100%; transition: box-shadow .12s ease, border-color .12s ease, transform .1s ease, background .12s ease; }
   #view-challenge .cc-skill-toggle:hover{ box-shadow:0 6px 18px rgba(0,0,0,0.08); transform:translateY(-1px); }
   #view-challenge .cc-skill-toggle:active{ transform:translateY(0) scale(0.98); }
   #view-challenge .cc-skill-toggle:focus-visible{ outline:2px solid var(--sc); outline-offset:2px; }
-  #view-challenge .cc-skill-toggle .cc-st-icon{ width:44px; height:44px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; background: color-mix(in srgb, var(--sc) 14%, #fff); color:var(--sc); position:relative; }
-  #view-challenge .cc-skill-toggle .cc-st-icon .cc-st-check-badge{ position:absolute; bottom:-4px; right:-4px; width:18px; height:18px; border-radius:50%; background:var(--sc); border:2px solid var(--bg-card); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .12s ease; }
+  #view-challenge .cc-skill-toggle .cc-st-icon{ width:30px; height:30px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; background: color-mix(in srgb, var(--sc) 14%, #fff); color:var(--sc); position:relative; }
+  #view-challenge .cc-skill-toggle .cc-st-icon .cc-st-check-badge{ position:absolute; bottom:-4px; right:-4px; width:14px; height:14px; border-radius:50%; background:var(--sc); border:2px solid var(--bg-card); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .12s ease; }
   #view-challenge .cc-skill-toggle.on .cc-st-icon .cc-st-check-badge{ opacity:1; }
-  #view-challenge .cc-skill-toggle .cc-st-icon .cc-st-check-badge svg{ width:9px; height:9px; }
+  #view-challenge .cc-skill-toggle .cc-st-icon .cc-st-check-badge svg{ width:8px; height:8px; }
   #view-challenge .cc-skill-toggle .cc-st-body{ min-width:0; }
-  #view-challenge .cc-skill-toggle .cc-st-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:15px; color:var(--text); }
-  #view-challenge .cc-skill-toggle .cc-st-desc{ font-size:11.5px; color:var(--text-dim); margin-top:2px; }
+  #view-challenge .cc-skill-toggle .cc-st-name{ font-family:'Sora', sans-serif; font-weight:700; font-size:13.5px; color:var(--text); }
+  #view-challenge .cc-skill-toggle .cc-st-desc{ display:none; }
   #view-challenge .cc-skill-toggle.on{ border-color: var(--sc); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-  /* skill tiles: 3 columns on both. Phone and desktop rules stay in their own blocks. */
+  /* skill chips: same compact look as the Challenge Summary chips (2 columns on phone, auto-fit on desktop) */
   @media (max-width: 640px){
-    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; }
-    #view-challenge .cc-skill-toggle{ padding:10px 8px; gap:7px; border-radius:14px; flex-direction:column; align-items:flex-start; }
-    #view-challenge .cc-skill-toggle .cc-st-icon{ width:40px; height:40px; font-size:14px; border-radius:11px; }
-    #view-challenge .cc-skill-toggle .cc-st-name{ font-size:13.5px; color:#000; }
-    #view-challenge .cc-skill-toggle .cc-st-desc{ display:none; }
-  }
-  @media (min-width: 641px){
-    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:repeat(3, 1fr); gap:12px; }
-    #view-challenge .cc-skill-toggle{ padding:14px; gap:10px; }
-    #view-challenge .cc-skill-toggle .cc-st-icon{ width:40px; height:40px; font-size:14px; }
-    #view-challenge .cc-skill-toggle .cc-st-name{ font-size:14.5px; }
-    #view-challenge .cc-skill-toggle .cc-st-desc{ font-size:11px; }
+    #view-challenge .cc-skill-toggle-grid{ grid-template-columns:1fr 1fr; }
   }
   #view-challenge .cc-config-stack{ display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
   @media (min-width: 641px){
