@@ -16,6 +16,7 @@
 //   presets             levels it offers: veryeasy / easy / difficult / verydifficult (leave one out to hide it)
 //                       each: {min, max, secs}  (+ count, decimalPct, mode, label, note when needed)
 //   customNote          text of the (i) on the Custom button
+//   key                 optional: the keyboard-shortcut letter for this skill (default: first letter of label, × counts as x)
 //   noCustom            true = no Custom option for this skill
 //   pool                optional (lo, hi, parity) => how many different questions the range can give
 //   modeLabel/modeText  optional: name + text of a special setting (e.g. Reciprocals' direction) shown on History / Challenge Details
@@ -128,7 +129,7 @@ const SKILL_META = {
 const SKILL_ORDER = Object.keys(SKILL_META);
 const DIFF_ORDER = ['veryeasy', 'easy', 'difficult', 'verydifficult'];   // order levels appear in the picker
 
-const skillDisplayLabels = {}, SKILL_ICON = {}, SKILL_DESC = {}, SKILL_COLOR = {}, SKILL_CLASS = {};
+const skillDisplayLabels = {}, SKILL_ICON = {}, SKILL_DESC = {}, SKILL_COLOR = {}, SKILL_CLASS = {}, SKILL_KEY = {};
 const DIFFICULTY_PRESETS = {}, CUSTOM_NOTE = {}, NO_CUSTOM = {};
 SKILL_ORDER.forEach(k => {
   const m = SKILL_META[k];
@@ -137,6 +138,8 @@ SKILL_ORDER.forEach(k => {
   SKILL_DESC[k] = m.desc;
   SKILL_COLOR[k] = m.color;
   SKILL_CLASS[k] = 'c-' + k;
+  const firstChar = (m.key || m.label || '').trim().charAt(0).toLowerCase();
+  SKILL_KEY[k] = firstChar === '\u00d7' ? 'x' : firstChar;   // both the x2 and x3 labels answer to the x key
   DIFFICULTY_PRESETS[k] = m.presets;
   CUSTOM_NOTE[k] = m.customNote || '';
   if(m.noCustom) NO_CUSTOM[k] = true;

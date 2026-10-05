@@ -315,3 +315,14 @@ function getLastSession(){
   if(sessions.length === 0) return null;
   return sessions[sessions.length - 1];
 }
+
+// ---------- one-time hints ----------
+// The keyboard-shortcuts popup is shown once per device. If storage is blocked we say "seen",
+// so the popup can never nag on every visit.
+const SHORTCUT_HINT_KEY = 'numbers_shortcutHintSeen';
+function shortcutHintSeen(){
+  try{ return localStorage.getItem(SHORTCUT_HINT_KEY) === '1'; }catch(e){ return true; }
+}
+function markShortcutHintSeen(){
+  try{ localStorage.setItem(SHORTCUT_HINT_KEY, '1'); }catch(e){}
+}
