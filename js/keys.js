@@ -73,7 +73,7 @@
 //
 // - On Home, or while the difficulty picker is open, press a skill's letter (SKILL_KEY in js/registry.js)
 //   to open that skill's picker. Pressing it while the picker is open switches to the other skill.
-// - On the History screen the same letters open that skill's history page instead.
+// - On the History screen the same letters open that skill's history page instead, and keep working on that page to switch skill.
 // - Skills that share a letter cycle: the key opens the skill AFTER the one the last letter press opened
 //   (x -> x2, x again -> x3, x again -> x2 ...). Only letter presses count, not mouse clicks.
 // - Shift + H on Home opens History. Shift + M on Home opens the 3-dot menu with its first option highlighted;
@@ -92,7 +92,9 @@
 
   const pickerOpen = () => picker.classList.contains('show');
   const homeActive = () => views.home.classList.contains('active');
-  const historyActive = () => views.history.classList.contains('active');   // the History overview (skill cards), not the per-skill page
+  const historyActive = () => views.history.classList.contains('active');   // the History overview (skill cards)
+  const skillHistoryEl = document.getElementById('view-history-skill');
+  const skillHistoryActive = () => skillHistoryEl.classList.contains('active');   // one skill's history page
   // any popup other than the difficulty picker (name editor, exit confirm, hints, code popups...)
   const otherPopupOpen = () => [...document.querySelectorAll('.modal-overlay.show, .name-overlay.show')].some(o => o !== picker);
 
@@ -103,7 +105,7 @@
     const t = e.target;
     if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
     if(otherPopupOpen()) return;
-    if(!pickerOpen() && !homeActive() && !historyActive()) return;
+    if(!pickerOpen() && !homeActive() && !historyActive() && !skillHistoryActive()) return;
 
     const letter = e.key.toLowerCase();
 
@@ -131,10 +133,14 @@
     if(!skills.length) return;
     e.preventDefault();
 
-    // History screen: the letter opens that skill's history page (same cycling rule as below)
-    if(!pickerOpen() && historyActive()){
-      const nextHist = skills[(skills.indexOf(lastHistSkill) + 1) % skills.length];
+    // History overview: the letter opens that skill's history page. On a skill's own history page it switches to
+    // another skill, so there's no need to go back first. Same cycling rule as below; on the skill page the cycle
+    // continues from the skill being shown (even if it was opened by a tap).
+    if(!pickerOpen() && (historyActive() || skillHistoryActive())){
+      const base = skillHistoryActive() ? skdCurrentKey : lastHistSkill;
+      const nextHist = skills[(skills.indexOf(base) + 1) % skills.length];
       lastHistSkill = nextHist;
+      if(skillHistoryActive() && nextHist === skdCurrentKey) return;   // already showing it
       openSkillDetail(nextHist);
       return;
     }
