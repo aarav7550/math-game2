@@ -210,6 +210,7 @@ function renderSkillGrid(grid, keys){
           <div class="sk-desc">${SKILL_DESC[key]}</div>
         </div>
       </div>
+      <div class="sk-bar"></div>
       <div class="sk-nums">
         <div class="sk-stat"><div class="num">${hasData ? avg.toFixed(1)+'s' : '—'}</div><div class="lbl">Avg</div></div>
         <div class="sk-stat"><div class="num">${hasData ? acc+'%' : '—'}</div><div class="lbl">Accuracy</div></div>
