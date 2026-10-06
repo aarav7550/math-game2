@@ -205,8 +205,8 @@
     transition:transform .08s ease, background .12s ease;
     -webkit-tap-highlight-color:transparent;
   }
-  /* translateY = fine-tune so the arrow lines up with the text; raise it to push the arrow lower, lower it (or go negative) to push it up */
-  .sk-play svg{ width:11px; height:11px; fill:currentColor; stroke:none; flex-shrink:0; transform:translateY(0.6px); }
+  /* translateY = fine-tune so the arrow's tip points at the vertical centre of the capital P; bigger = lower, negative = higher */
+  .sk-play svg{ width:11px; height:11px; fill:currentColor; stroke:none; flex-shrink:0; transform:translateY(-0.3px); }
   .skill-card:not(.soon):active .sk-play{ transform:scale(0.97); }
 
   /* DESKTOP ONLY: narrower Home cards, Play button size, wider gap between Avg and Accuracy */
@@ -307,10 +307,10 @@
     .sk-nums .lbl{ font-size:9.5px; }
     .sk-play{ height:30px; font-size:12px; }
     #skillSections .sk-nums{ gap:36px; }
-    .sk-bar{ display:none; }
+    .sk-bar{ height:3px; }
     .skill-grid + .section-label{ margin-top:32px; }
     .section-label.more-fun{ margin-top:32px; }
-    #skillSections .sk-nums{ margin-top:auto; }
+    #skillSections .sk-bar{ margin-top:auto; }
 
     .section-label{ font-size:13.5px; }
 
