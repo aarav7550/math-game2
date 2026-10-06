@@ -1392,16 +1392,16 @@
   /* ---- split Start / Generate code button (Create a challenge) ----
      One button cut on a diagonal: left half = Generate code (blue), right half = Start (red).
      Mixed drill mode (data-mode="mixed") hides the left half and Start becomes the whole button.
-     Swap the two colours here. */
-  #view-challenge{ --cc-split-blue: var(--feature-accent); --cc-split-red: #E5484D; }
+     Swap the two colours on the next line (left = Generate code, right = Start); label colours are set on the two rules below. */
+  #view-challenge{ --cc-split-left: #E5484D; --cc-split-right: var(--feature-accent); }
   #view-challenge .cc-btn-split{ display:flex; align-items:stretch; border-radius:10px; overflow:hidden; flex-shrink:0; }
   #view-challenge .cc-btn-split button{ border:none; border-radius:0; cursor:pointer; font-family:'Sora', sans-serif; font-weight:700; display:flex; align-items:center; justify-content:center; gap:7px; white-space:nowrap; transition: filter .15s ease, transform .12s ease, opacity .15s ease; }
   #view-challenge .cc-btn-split button:hover{ filter:brightness(1.06); opacity:1; }
   #view-challenge .cc-btn-split button:active{ transform:scale(0.97); }
   #view-challenge .cc-btn-split button:disabled{ opacity:0.4; cursor:not-allowed; transform:none; filter:none; }
-  #view-challenge .cc-btn-split .cc-btn-generate{ background:var(--cc-split-blue); color:#082036; clip-path:polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); padding:11px 24px 11px 18px; font-size:13.5px; }
-  #view-challenge .cc-btn-split .cc-btn-start{ background:var(--cc-split-red); color:#fff; clip-path:polygon(12px 0, 100% 0, 100% 100%, 0 100%); margin-left:-9px; padding:11px 20px 11px 25px; font-size:13.5px; }
-  #view-challenge .cc-btn-split .cc-btn-start svg{ width:13px; height:13px; fill:#fff; flex-shrink:0; }
+  #view-challenge .cc-btn-split .cc-btn-generate{ background:var(--cc-split-left); color:#fff; clip-path:polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); padding:11px 24px 11px 18px; font-size:13.5px; }
+  #view-challenge .cc-btn-split .cc-btn-start{ background:var(--cc-split-right); color:#082036; clip-path:polygon(12px 0, 100% 0, 100% 100%, 0 100%); margin-left:-9px; padding:11px 20px 11px 25px; font-size:13.5px; }
+  #view-challenge .cc-btn-split .cc-btn-start svg{ width:13px; height:13px; fill:#082036; flex-shrink:0; }
   #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-generate{ display:none; }
   #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-start{ clip-path:none; margin-left:0; padding:11px 30px; }
   @media (max-width: 640px){
