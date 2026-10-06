@@ -108,7 +108,7 @@ function startRound(){
     activeChallengeCfg = ch.cfg;
     activeChallengeIncluded = ch.included;
     state.seed = ch.seed;
-    state.fromChallenge = true;
+    state.fromChallenge = ch.fromChallenge !== false;   // Mixed drill passes false; entered codes leave it unset (= true)
     pendingChallenge = null;
   } else {
     activeChallengeCfg = null;

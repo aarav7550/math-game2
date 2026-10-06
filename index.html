@@ -324,12 +324,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
         Back
       </button>
-      <div class="cc-topbar-title">Create a challenge</div>
+      <div class="cc-topbar-title" id="ccTopbarTitle">Create a challenge</div>
       <div style="width:60px;"></div>
     </div>
   </div>
 
-  <div class="cc-page-sub">Pick the skills to include, set a difficulty for each, and share the code — whoever plays it gets your exact set of questions.</div>
+  <div class="cc-page-sub" id="ccPageSub">Pick the skills to include, set a difficulty for each, and share the code — whoever plays it gets your exact set of questions.</div>
 
   <div class="cc-section-label">Skills to include</div>
   <div class="cc-skill-toggle-grid" id="ccSkillGrid">
@@ -344,7 +344,7 @@
 
   <div class="cc-section-label cc-qcount-section-label">Number of questions</div>
   <div class="cc-qcount-card">
-    <div class="cc-qcount-label">Questions in this challenge</div>
+    <div class="cc-qcount-label" id="ccQcountLabel">Questions in this challenge</div>
     <div class="cc-qcount-bar" id="ccQcountBar">
       <button class="cc-qcount-opt active" data-n="15">15</button>
       <button class="cc-qcount-opt" data-n="30">30</button>
@@ -363,7 +363,7 @@
     </div>
   <div class="cc-summary-strip">
     <div class="cc-summary-left">
-      <div class="cc-sl-tag">Your challenge</div>
+      <div class="cc-sl-tag" id="ccSlTag">Your challenge</div>
       <div class="cc-sl-title" id="ccSummaryTitle">2 skills selected</div>
       <div class="cc-sl-desc" id="ccSummaryDesc">Halving, × 2</div>
     </div>
@@ -372,10 +372,15 @@
         <div class="num" id="ccSummaryEst">1m 0s</div>
         <div class="lbl">Est. time</div>
       </div>
-      <button class="cc-btn-generate" id="ccBtnGenerate" disabled>
-        Generate code
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </button>
+      <!-- one button split on a diagonal: left = Generate code (blue), right = Start (red).
+           In Mixed drill mode (view-challenge[data-mode="mixed"]) the left half is hidden and Start fills the button. -->
+      <div class="cc-btn-split" id="ccBtnSplit">
+        <button class="cc-btn-generate" id="ccBtnGenerate" disabled>Generate code</button>
+        <button class="cc-btn-start" id="ccBtnStart" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>
+          Start
+        </button>
+      </div>
     </div>
   </div>
   </div>
@@ -863,22 +868,6 @@
       <button class="btn-ghost" id="btnChallengeCopy">Copy</button>
       <button class="btn-primary" id="btnChallengeShowClose">Done</button>
     </div>
-  </div>
-</div>
-
-<!-- mixed drill: coming soon -->
-<div class="modal-overlay" id="mixedSoonModal">
-  <div class="soon-modal" role="dialog" aria-labelledby="soonTitle">
-    <button class="dm-close" id="btnSoonClose" aria-label="Close">✕</button>
-    <div class="soon-icon">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#007EA7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>
-      </svg>
-    </div>
-    <div class="soon-eyebrow">Feeling brave?</div>
-    <div class="soon-title" id="soonTitle">Mixed drill is coming soon</div>
-    <p class="soon-text">We're still building the setup for it: choosing which skills go in the mix and how hard each one is. Until then, pick a single skill above.</p>
-    <button class="soon-btn" id="btnSoonOk">Got it</button>
   </div>
 </div>
 
