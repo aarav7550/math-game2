@@ -186,6 +186,8 @@
   }
   .sk-name{ font-family:'Sora',sans-serif; font-weight:700; font-size:15px; }
   .sk-desc{ font-size:11.5px; color:var(--ink-dim); }
+  /* decorative divider between the name/description and the stats (not tied to any data) */
+  .sk-bar{ height:5px; border-radius:3px; background:var(--track); flex-shrink:0; }
   .sk-nums{ display:flex; gap:28px; justify-content:center; }
   .sk-nums .sk-stat{ display:flex; flex-direction:column; align-items:center; text-align:center; }
   .sk-nums .num{ font-family:'Sora',sans-serif; font-weight:700; font-size:14px; }
@@ -301,7 +303,8 @@
     .sk-nums .lbl{ font-size:9.5px; }
     .sk-play{ height:30px; font-size:12px; }
     #skillSections .sk-nums{ gap:36px; }
-    #skillSections .sk-nums{ margin-top:auto; }
+    .sk-bar{ height:6px; }
+    #skillSections .sk-bar{ margin-top:auto; }
 
     .section-label{ font-size:13.5px; }
 
