@@ -206,10 +206,11 @@
   .sk-play svg{ width:11px; height:11px; fill:currentColor; stroke:none; flex-shrink:0; }
   .skill-card:not(.soon):active .sk-play{ transform:scale(0.97); }
 
-  /* DESKTOP ONLY: Play button size + wider gap between Avg and Accuracy (Home cards only) */
+  /* DESKTOP ONLY: narrower Home cards, Play button size, wider gap between Avg and Accuracy */
   @media (min-width:641px){
     .sk-play{ height:32px; font-size:12.5px; }
     #skillSections .sk-nums{ gap:48px; }
+    #skillSections .skill-grid{ grid-template-columns:repeat(auto-fill, 250px); }
   }
   @media (min-width:641px) and (hover:hover){
     .skill-card:hover .sk-play{ background:color-mix(in srgb, var(--accent-c) 36%, #ffffff); }
@@ -292,13 +293,15 @@
 
     .skill-grid{ grid-template-columns:1fr 1fr; gap:9px; }
     .skill-card{ padding:14px 9px; gap:11px; }
-    .sk-icon{ width:46px; height:46px; font-size:15px; border-radius:12px; }
+    .sk-icon{ width:42px; height:42px; font-size:14px; border-radius:11px; }
+    #skillSections .sk-top{ gap:8px; }
     .sk-name{ font-size:15px; }
     .sk-desc{ font-size:12px; }
     .sk-nums .num{ font-size:15px; }
     .sk-nums .lbl{ font-size:9.5px; }
     .sk-play{ height:30px; font-size:12px; }
     #skillSections .sk-nums{ gap:36px; }
+    #skillSections .sk-nums{ margin-top:auto; }
 
     .section-label{ font-size:13.5px; }
 
