@@ -1405,11 +1405,14 @@
   #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-generate{ display:none; }
   #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-start{ clip-path:none; margin-left:0; padding:11px 30px; }
   @media (max-width: 640px){
-    #view-challenge .cc-btn-split{ flex:1; margin-left:16px; }
-    #view-challenge .cc-btn-split button{ flex:1; }
-    #view-challenge .cc-btn-split .cc-btn-generate{ padding:11px 18px 11px 12px; font-size:12.5px; }
-    #view-challenge .cc-btn-split .cc-btn-start{ padding:11px 12px 11px 19px; font-size:12.5px; }
-    #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-start{ padding:11px 16px; }
+    /* compact button (sized by its labels, not stretched), and the estimate takes the freed space, centred */
+    #view-challenge .cc-btn-split{ flex:0 0 auto; margin-left:12px; }
+    #view-challenge .cc-btn-split button{ flex:0 0 auto; }
+    #view-challenge .cc-btn-split .cc-btn-generate{ padding:10px 15px 10px 11px; font-size:12px; }
+    #view-challenge .cc-btn-split .cc-btn-start{ padding:10px 11px 10px 17px; font-size:12px; gap:5px; }
+    #view-challenge .cc-btn-split .cc-btn-start svg{ width:11px; height:11px; }
+    #view-challenge[data-mode="mixed"] .cc-btn-split .cc-btn-start{ padding:10px 22px; }
+    #view-challenge .cc-summary-est{ flex:1; align-items:center; }
   }
   /* keep the fixed bar clear of the phone's home indicator */
   #view-challenge .cc-summary-strip{ bottom:calc(16px + env(safe-area-inset-bottom, 0px)); }

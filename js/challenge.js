@@ -546,7 +546,8 @@
   const homeCreateBtn = document.getElementById('challengeCreateBtn');
   if(homeCreateBtn) homeCreateBtn.addEventListener('click', () => openChallengeScreen('challenge'));
 
-  // Home's "Feeling brave?" strip opens the same screen as the Mixed drill setup.
-  const homeMixedBtn = document.getElementById('btnMixedStart');
-  if(homeMixedBtn) homeMixedBtn.addEventListener('click', () => openChallengeScreen('mixed'));
+  // Home's "Feeling brave?" strip opens the same screen as the Mixed drill setup. The WHOLE strip is the tap target
+  // (the Start button inside it is part of the strip, so its click bubbles up to this one handler).
+  const homeMixedStrip = document.getElementById('braveStrip');
+  if(homeMixedStrip) homeMixedStrip.addEventListener('click', () => openChallengeScreen('mixed'));
 })();
