@@ -216,6 +216,8 @@
     #skillSections .skill-grid{ grid-template-columns:repeat(auto-fill, 250px); }
     .skill-grid + .section-label{ margin-top:34px; }
     .section-label.more-fun{ margin-top:34px; }
+    /* same width as a row of 3 skill cards: 3 x 250px + 2 x 14px gap */
+    .challenge-box, .brave-strip{ max-width:778px; }
   }
   @media (min-width:641px) and (hover:hover){
     .skill-card:hover .sk-play{ background:color-mix(in srgb, var(--accent-c) 36%, #ffffff); }
