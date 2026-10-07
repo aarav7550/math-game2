@@ -948,13 +948,14 @@
 <script src="js/keys.js"></script>
 
 <script>
-  // LOADING SCREEN: hides once every script above has run AND it has been on screen for at least
-  // SPLASH_MIN_MS (counted from when it was first painted). So it always shows, even on an instant
-  // launch, and stays longer when the app is genuinely slow to load.
+  // LOADING SCREEN. SPLASH_MIN_MS = shortest time it stays on screen.
+  // Desktop: always shown for at least SPLASH_MIN_MS (counted from first paint), even on an instant launch.
+  // Phone/tablet: shown only while the app is actually loading (no extra wait added on a fast launch).
   (function () {
-    var SPLASH_MIN_MS = 100;
+    var SPLASH_MIN_MS = 500;
     var el = document.getElementById('numbersSplash');
     if (!el) return;
+    var isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
     var done = false;
     function hide() {
       if (done) return;
@@ -962,11 +963,14 @@
       el.classList.add('hide');
       setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
     }
-    window.__splashPainted.then(function (paintedAt) {
-      setTimeout(hide, Math.max(0, SPLASH_MIN_MS - (performance.now() - paintedAt)));
-    });
-    // Safety net: never leave the screen up for more than 3s once the app is ready
-    // (e.g. if the browser paused animation frames in a background tab).
+    if (isTouchDevice) {
+      setTimeout(hide, Math.max(0, SPLASH_MIN_MS - performance.now()));
+    } else {
+      window.__splashPainted.then(function (paintedAt) {
+        setTimeout(hide, Math.max(0, SPLASH_MIN_MS - (performance.now() - paintedAt)));
+      });
+    }
+    // Safety net: never leave the screen up for more than 3s once the app is ready.
     setTimeout(hide, 3000);
   })();
 </script>
