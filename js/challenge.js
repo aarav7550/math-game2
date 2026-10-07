@@ -480,7 +480,8 @@
       cfg: cfgBySkill,
       n: questionCount,
       seed: mode === 'mixed' ? randomSeed() : draftSeed,
-      fromChallenge: mode === 'challenge'
+      fromChallenge: mode === 'challenge',
+      returnTo: 'challenge'   // leaving the round returns to THIS screen, settings intact (see game.js)
     };
     startRound();
   });

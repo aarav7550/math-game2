@@ -1,5 +1,5 @@
 // Bump this version string whenever you deploy changes so old caches get replaced.
-const CACHE_VERSION = 'numbers-v38';
+const CACHE_VERSION = 'numbers-v39';
 const CACHE_NAME = `numbers-cache-${CACHE_VERSION}`;
 
 const ASSETS = [

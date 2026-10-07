@@ -747,7 +747,8 @@ document.getElementById('btnAgain').addEventListener('click', () => {
       cfg: activeChallengeCfg,
       n: state.totalQuestions,
       seed: randomSeed(),
-      fromChallenge: state.fromChallenge   // a Mixed drill stays a normal (non-challenge) round
+      fromChallenge: state.fromChallenge,  // a Mixed drill stays a normal (non-challenge) round
+      returnTo: state.returnTo             // and Leave-round still returns to the Create / Mixed screen
     };
   }
   startRound();
