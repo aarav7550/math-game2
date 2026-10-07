@@ -47,6 +47,12 @@
 </div>
 <script>
   // Splash name + icon come from manifest.json, so each copy of the app (public / beta) shows its own.
+  // Resolves with the time the loading screen was first painted on screen (two animation frames in).
+  window.__splashPainted = new Promise(function (resolve) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { resolve(performance.now()); });
+    });
+  });
   (function () {
     var icon = document.getElementById('spIcon');
     var nameEl = document.getElementById('spName');
@@ -942,21 +948,26 @@
 <script src="js/keys.js"></script>
 
 <script>
-  // SPLASH: hide once every script above has run. SPLASH_MIN_MS = shortest time it stays up
-  // (set to 0 to hide it the instant the app is ready).
+  // LOADING SCREEN: hides once every script above has run AND it has been on screen for at least
+  // SPLASH_MIN_MS (counted from when it was first painted). So it always shows, even on an instant
+  // launch, and stays longer when the app is genuinely slow to load.
   (function () {
     var SPLASH_MIN_MS = 700;
     var el = document.getElementById('numbersSplash');
     if (!el) return;
-    var wait = Math.max(0, SPLASH_MIN_MS - performance.now());
-    setTimeout(function () {
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          el.classList.add('hide');
-          setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
-        });
-      });
-    }, wait);
+    var done = false;
+    function hide() {
+      if (done) return;
+      done = true;
+      el.classList.add('hide');
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
+    }
+    window.__splashPainted.then(function (paintedAt) {
+      setTimeout(hide, Math.max(0, SPLASH_MIN_MS - (performance.now() - paintedAt)));
+    });
+    // Safety net: never leave the screen up for more than 3s once the app is ready
+    // (e.g. if the browser paused animation frames in a background tab).
+    setTimeout(hide, 3000);
   })();
 </script>
 
