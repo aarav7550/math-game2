@@ -19,7 +19,7 @@
 
 <!-- Splash + update message: inline on purpose, so they appear before style.css loads -->
 <style>
-#numbersSplash{position:fixed;top:0;right:0;bottom:0;left:0;z-index:99999;background:#14171C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .25s ease;}
+#numbersSplash{position:fixed;top:0;right:0;bottom:0;left:0;z-index:99999;background:#14171C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .15s ease;}
 #numbersSplash.hide{opacity:0;pointer-events:none;}
 #numbersSplash img{width:88px;height:88px;border-radius:20px;display:block;}
 #numbersSplash .sp-name{font:700 22px/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.04em;color:#FFFFFF;}
@@ -47,11 +47,9 @@
 </div>
 <script>
   // Splash name + icon come from manifest.json, so each copy of the app (public / beta) shows its own.
-  // Resolves with the time the loading screen was first painted on screen (two animation frames in).
+  // Resolves once the browser has started drawing its first frame (so the loading screen is guaranteed to be seen).
   window.__splashPainted = new Promise(function (resolve) {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () { resolve(performance.now()); });
-    });
+    requestAnimationFrame(function () { resolve(); });
   });
   (function () {
     var icon = document.getElementById('spIcon');
@@ -948,28 +946,23 @@
 <script src="js/keys.js"></script>
 
 <script>
-  // LOADING SCREEN. SPLASH_MIN_MS = shortest time it stays on screen.
-  // Desktop: always shown for at least SPLASH_MIN_MS (counted from first paint), even on an instant launch.
-  // Phone/tablet: shown only while the app is actually loading (no extra wait added on a fast launch).
+  // LOADING SCREEN. It hides once ALL of these are true: every script above has run, the browser has drawn
+  // at least one frame, and SPLASH_MIN_MS has passed since the page started loading (so a slow load never
+  // gets extra waiting added on top). Same behaviour on desktop and phone.
   (function () {
     var SPLASH_MIN_MS = 500;
     var el = document.getElementById('numbersSplash');
     if (!el) return;
-    var isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
     var done = false;
     function hide() {
       if (done) return;
       done = true;
       el.classList.add('hide');
-      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 400);
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 250);
     }
-    if (isTouchDevice) {
+    window.__splashPainted.then(function () {
       setTimeout(hide, Math.max(0, SPLASH_MIN_MS - performance.now()));
-    } else {
-      window.__splashPainted.then(function (paintedAt) {
-        setTimeout(hide, Math.max(0, SPLASH_MIN_MS - (performance.now() - paintedAt)));
-      });
-    }
+    });
     // Safety net: never leave the screen up for more than 3s once the app is ready.
     setTimeout(hide, 3000);
   })();
