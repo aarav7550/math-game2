@@ -83,7 +83,8 @@ function sessionRowHtml(s, withSkill){
     + '<div class="sr-cell sr-acc">' + s.accuracy + '% acc</div>'
     + '</div>';
   // Rounds saved with question details can be tapped to review them (see "SESSION REVIEW" below)
-  const hasDetails = !!(s.details && Array.isArray(s.details.wrong) && Array.isArray(s.details.slow));
+  const d = s.details;
+  const hasDetails = !!(d && (Array.isArray(d.all) || (Array.isArray(d.wrong) && Array.isArray(d.slow))));
   return '<div class="session-row' + (s.practice ? ' is-practice' : '') + (hasDetails ? ' has-details' : '') + '"'
     + (hasDetails ? ' data-date="' + s.date + '" data-prac="' + (s.practice ? 1 : 0) + '"' : '') + '>'
     + line1 + line2 + popover + '</div>';
@@ -179,6 +180,8 @@ document.addEventListener('click', closeLevelPop);
 const reviewModal = document.getElementById('reviewModal');
 const rvTitleEl = document.getElementById('rvTitle');
 const rvSubEl = document.getElementById('rvSub');
+const rvStatsEl = document.getElementById('rvStats');
+const REVIEW_SLOW_SHOW = 5;   // how many of the slowest right answers the review lists
 const rvBodyEl = document.getElementById('rvBody');
 
 function escapeHtml(v){
@@ -188,30 +191,66 @@ function findRound(date, isPractice){
   const list = isPractice ? practiceSessions : sessions;
   return list.find(s => s.date === date) || null;
 }
-function reviewRowHtml(r, kind, isMixed){
-  const tag = isMixed && r.k ? '<span class="rv-tag">' + escapeHtml(historySkillLabels[r.k] || r.k) + '</span>' : '';
-  let nums;
-  if(kind === 'wrong'){
-    nums = '<span class="rv-you">' + (r.g === null ? 'no answer' : 'you: ' + escapeHtml(r.g)) + '</span>'
-         + '<span class="rv-right">right: ' + escapeHtml(r.a) + '</span>'
-         + (r.g === null ? '' : '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>');
-  } else {
-    nums = '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>';
+// Newer sessions save every question (details.all); the very first version only saved wrong + slowest, still supported.
+function reviewLists(d){
+  if(Array.isArray(d.all)){
+    return {
+      all: d.all,
+      wrong: d.all.filter(r => !r.c),
+      slow: d.all.filter(r => r.c).sort((a, b) => b.t - a.t).slice(0, REVIEW_SLOW_SHOW)
+    };
   }
-  return '<div class="rv-row"><div class="rv-q">' + escapeHtml(r.q) + tag + '</div><div class="rv-nums">' + nums + '</div></div>';
+  return { all: null, wrong: d.wrong, slow: d.slow };
+}
+// kind: 'wrong' | 'slow' | 'all'
+function reviewRowHtml(r, kind, isMixed, num){
+  const tag = isMixed && r.k ? '<span class="rv-tag">' + escapeHtml(historySkillLabels[r.k] || r.k) + '</span>' : '';
+  const timedOut = r.g === null;
+  const time = '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>';
+  let nums;
+  if(kind === 'slow' || r.c === 1){
+    nums = time;
+  } else {
+    nums = '<span class="rv-you">' + (timedOut ? 'no answer' : 'you: ' + escapeHtml(r.g)) + '</span>'
+         + '<span class="rv-right">right: ' + escapeHtml(r.a) + '</span>'
+         + (timedOut ? (kind === 'all' ? '<span class="rv-skip">not counted</span>' : '') : time);
+  }
+  const bad = kind === 'all' && r.c === 0;
+  return '<div class="rv-row' + (bad ? ' rv-bad' : '') + '"><div class="rv-q">'
+    + (kind === 'all' ? '<span class="rv-n">' + num + '.</span>' : '')
+    + escapeHtml(r.q) + tag + '</div><div class="rv-nums">' + nums + '</div></div>';
 }
 function openReview(s){
   const isMixed = s.skill === 'mixed';
   const lv = sessionLevelInfo(s);
+  const L = reviewLists(s.details);
   rvTitleEl.textContent = (historySkillLabels[s.skill] || s.skill) + (s.practice ? ' · Practice' : '');
-  rvSubEl.textContent = fmtDayLabel(s.date) + ', ' + fmtTimeLabel(s.date) + ' · ' + lv.label + ' · ' + (s.questions || '—') + ' Qs · ' + s.accuracy + '% acc';
-  const wrong = s.details.wrong, slow = s.details.slow;
-  let html = '<div class="rv-section-title">Wrong or missed' + (wrong.length ? ' (' + wrong.length + ')' : '') + '</div>';
-  html += wrong.length
-    ? wrong.map(r => reviewRowHtml(r, 'wrong', isMixed)).join('')
+  rvSubEl.textContent = fmtDayLabel(s.date) + ', ' + fmtTimeLabel(s.date) + ' · ' + lv.label;
+  // second row: fixed columns, avg + accuracy coloured like the Recent sessions rows
+  rvStatsEl.innerHTML = '<span class="rv-st rv-qs">' + (s.questions || '—') + ' Qs</span>'
+    + '<span class="rv-st rv-avg">' + Number(s.avgTime).toFixed(1) + 's avg</span>'
+    + '<span class="rv-st rv-acc">' + s.accuracy + '% acc</span>';
+
+  let html = '<div class="rv-section-title">Wrong or missed' + (L.wrong.length ? ' (' + L.wrong.length + ')' : '') + '</div>';
+  html += L.wrong.length
+    ? L.wrong.map(r => reviewRowHtml(r, 'wrong', isMixed)).join('')
     : '<div class="rv-empty">No mistakes in this round.</div>';
-  if(slow.length){
-    html += '<div class="rv-section-title">Slowest right answers</div>' + slow.map(r => reviewRowHtml(r, 'slow', isMixed)).join('');
+  if(L.slow.length){
+    html += '<div class="rv-section-title">Slowest right answers</div>' + L.slow.map(r => reviewRowHtml(r, 'slow', isMixed)).join('');
+  }
+  if(L.all){
+    // Every question with its time, plus the average worked out from it, so the session's avg can be double-checked.
+    const answered = L.all.filter(r => r.g !== null);
+    const skipped = L.all.length - answered.length;
+    const note = answered.length
+      ? 'Average of the ' + answered.length + ' answered question' + (answered.length === 1 ? '' : 's') + ': <b>'
+        + (answered.reduce((a, r) => a + r.t, 0) / answered.length / 1000).toFixed(1) + 's</b>'
+        + (skipped ? ' · ' + skipped + ' timed out (not counted)' : '')
+      : 'No question was answered in this round.';
+    html += '<details class="rv-all"><summary>All questions (' + L.all.length + ')</summary>'
+      + '<div class="rv-all-note">' + note + '</div>'
+      + L.all.map((r, i) => reviewRowHtml(r, 'all', isMixed, i + 1)).join('')
+      + '</details>';
   }
   rvBodyEl.innerHTML = html;
   rvBodyEl.scrollTop = 0;
