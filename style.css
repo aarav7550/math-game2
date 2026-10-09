@@ -1759,6 +1759,10 @@
 
 /* ---------- History: tap a session row to review it ---------- */
 .session-row.has-details{ cursor:pointer; }
+/* A hovered row is lifted (transform), which makes it its own layer; raise it (and any row showing the level popover)
+   so the popover is drawn over the rows below instead of underneath them. */
+.session-row:hover, .session-row:focus-within{ z-index:5; }
+.session-row:has(.level-popover.show){ z-index:6; }
 /* rows that open the review float up a little on hover and press down when tapped */
 @media (hover:hover){
   .session-row.has-details:hover{ border-color:var(--primary); transform:translateY(-2px); box-shadow:0 8px 18px rgba(0,23,31,0.10); }
@@ -1766,6 +1770,11 @@
 }
 .session-row.has-details:active{ transform:translateY(0) scale(0.99); box-shadow:0 2px 6px rgba(0,23,31,0.08); transition-duration:.08s; }
 .session-row.has-details::after{ transition:transform .18s cubic-bezier(.2,.8,.2,1); }
+/* phones have no hover, so the "float" is always visible there: a resting shadow, and a clear press-in when tapped */
+@media (hover:none){
+  .session-row.has-details{ box-shadow:0 3px 10px rgba(0,23,31,0.09); -webkit-tap-highlight-color:transparent; }
+  .session-row.has-details:active{ transform:scale(0.97); box-shadow:0 1px 3px rgba(0,23,31,0.08); }
+}
 @media (prefers-reduced-motion:reduce){
   .session-row, .session-row.has-details::after{ transition:none; }
   .session-row.has-details:hover, .session-row.has-details:active{ transform:none; }
