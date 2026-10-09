@@ -1,5 +1,5 @@
 // Bump this version string whenever you deploy changes so devices notice a new version.
-const CACHE_VERSION = 'numbers-v53';
+const CACHE_VERSION = 'numbers-v54';
 const CACHE_NAME = `numbers-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
