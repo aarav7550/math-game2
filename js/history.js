@@ -191,7 +191,7 @@ function findRound(date, isPractice){
   const list = isPractice ? practiceSessions : sessions;
   return list.find(s => s.date === date) || null;
 }
-// Newer sessions save every question (details.all); the very first version only saved wrong + slowest, still supported.
+// Sessions normally save {wrong, slow}. (One test version saved every question as details.all; those still show, with wrong / slow worked out from it.)
 function reviewLists(d){
   if(Array.isArray(d.all)){
     return {
@@ -202,23 +202,18 @@ function reviewLists(d){
   }
   return { all: null, wrong: d.wrong, slow: d.slow };
 }
-// kind: 'wrong' | 'slow' | 'all'
-function reviewRowHtml(r, kind, isMixed, num){
+// kind: 'wrong' | 'slow'
+function reviewRowHtml(r, kind, isMixed){
   const tag = isMixed && r.k ? '<span class="rv-tag">' + escapeHtml(historySkillLabels[r.k] || r.k) + '</span>' : '';
-  const timedOut = r.g === null;
-  const time = '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>';
   let nums;
-  if(kind === 'slow' || r.c === 1){
-    nums = time;
+  if(kind === 'slow'){
+    nums = '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>';
   } else {
-    nums = '<span class="rv-you">' + (timedOut ? 'no answer' : 'you: ' + escapeHtml(r.g)) + '</span>'
+    nums = '<span class="rv-you">' + (r.g === null ? 'no answer' : 'you: ' + escapeHtml(r.g)) + '</span>'
          + '<span class="rv-right">right: ' + escapeHtml(r.a) + '</span>'
-         + (timedOut ? (kind === 'all' ? '<span class="rv-skip">not counted</span>' : '') : time);
+         + (r.g === null ? '' : '<span class="rv-t">' + (r.t / 1000).toFixed(1) + 's</span>');
   }
-  const bad = kind === 'all' && r.c === 0;
-  return '<div class="rv-row' + (bad ? ' rv-bad' : '') + '"><div class="rv-q">'
-    + (kind === 'all' ? '<span class="rv-n">' + num + '.</span>' : '')
-    + escapeHtml(r.q) + tag + '</div><div class="rv-nums">' + nums + '</div></div>';
+  return '<div class="rv-row"><div class="rv-q">' + escapeHtml(r.q) + tag + '</div><div class="rv-nums">' + nums + '</div></div>';
 }
 function openReview(s){
   const isMixed = s.skill === 'mixed';
@@ -237,20 +232,6 @@ function openReview(s){
     : '<div class="rv-empty">No mistakes in this round.</div>';
   if(L.slow.length){
     html += '<div class="rv-section-title">Slowest right answers</div>' + L.slow.map(r => reviewRowHtml(r, 'slow', isMixed)).join('');
-  }
-  if(L.all){
-    // Every question with its time, plus the average worked out from it, so the session's avg can be double-checked.
-    const answered = L.all.filter(r => r.g !== null);
-    const skipped = L.all.length - answered.length;
-    const note = answered.length
-      ? 'Average of the ' + answered.length + ' answered question' + (answered.length === 1 ? '' : 's') + ': <b>'
-        + (answered.reduce((a, r) => a + r.t, 0) / answered.length / 1000).toFixed(1) + 's</b>'
-        + (skipped ? ' · ' + skipped + ' timed out (not counted)' : '')
-      : 'No question was answered in this round.';
-    html += '<details class="rv-all"><summary>All questions (' + L.all.length + ')</summary>'
-      + '<div class="rv-all-note">' + note + '</div>'
-      + L.all.map((r, i) => reviewRowHtml(r, 'all', isMixed, i + 1)).join('')
-      + '</details>';
   }
   rvBodyEl.innerHTML = html;
   rvBodyEl.scrollTop = 0;

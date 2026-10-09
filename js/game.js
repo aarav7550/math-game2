@@ -298,12 +298,16 @@ function answeredTimesMs(records){
   return records.filter(r => r.given !== null).map(r => r.timeMs);
 }
 
-// What gets saved with each session so it can be reviewed later in History: every question, in the order played.
-// k = skill, q = question text, a = right answer, g = what you typed (null = timed out), t = time in ms, c = 1 if right.
-// History works out the wrong / slowest lists from this.
+// What gets saved with each session so it can be reviewed later in History.
+// k = skill, q = question text, a = right answer, g = what you typed (null = timed out), t = time in ms.
+//   wrong = every wrong or timed-out question, in the order played
+//   slow  = the SLOW_KEEP slowest questions you got right (wrong ones are already in `wrong`)
+const SLOW_KEEP = 5;
 function buildSessionDetails(records){
+  const slim = r => ({ k: r.skillKey, q: r.text, a: r.answerText || r.answer, g: r.given, t: Math.round(r.timeMs) });
   return {
-    all: records.map(r => ({ k: r.skillKey, q: r.text, a: r.answerText || r.answer, g: r.given, t: Math.round(r.timeMs), c: r.correct ? 1 : 0 }))
+    wrong: records.filter(r => !r.correct).map(slim),
+    slow: records.filter(r => r.correct).sort((a,b) => b.timeMs - a.timeMs).slice(0, SLOW_KEEP).map(slim)
   };
 }
 

@@ -853,15 +853,19 @@
   .day-header:first-child{ margin-top:8px; }
   .session-row{
     position:relative;
-    display:grid; grid-template-columns: 1fr 74px 96px 48px 64px 66px;
-    align-items:center; column-gap:8px;
-    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 40px 13px 18px;   /* right padding leaves room for the review arrow */
+    --strip-w:18px;   /* the grey review strip on the right edge; the content keeps clear of it */
+    display:grid; grid-template-columns: 66px 66px 62px 48px 68px 75px;
+    justify-content:space-between; align-items:center; column-gap:10px;   /* space-between = the six items are spread with equal gaps */
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px calc(var(--strip-w) + 16px) 13px 18px;
   }
   .sr-line1, .sr-line2{ display:contents; }
   .session-row .sr-cell{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums; font-size:13.5px; color:var(--ink-mid); }
   .session-row .sr-skill{ font-weight:600; color:var(--primary); }
   .session-row .sr-qs{ text-align:center; }
-  .session-row .sr-avg, .session-row .sr-acc{ font-weight:700; color:var(--primary); text-align:right; }
+  .session-row .sr-level, .session-row .sr-level-static{ text-align:center; justify-self:center; max-width:96px; }   /* wider labels (Very Difficult) spill evenly into the gaps */
+  .session-row .sr-skill{ justify-self:start; max-width:84px; }
+  .session-row .sr-avg{ font-weight:700; color:var(--primary); text-align:center; }
+  .session-row .sr-acc{ font-weight:700; color:var(--primary); text-align:right; }
   .sr-level{ cursor:pointer; }
   .sr-level:hover{ color:var(--primary); text-decoration:underline dotted; }
 
@@ -1015,7 +1019,7 @@
   #view-history-skill .sessions-section .section-label{ text-align:center; margin:0 0 12px; }
   /* no skill column on this page (it is already one skill): 5 fixed columns */
   #view-history-skill .session-row{
-    grid-template-columns: 1fr 92px 48px 64px 66px;
+    grid-template-columns: 66px 62px 48px 68px 75px;
   }
   #view-history-skill .session-row .sr-time{ font-weight:600; }
 
@@ -1747,18 +1751,22 @@
 /* ---------- History: tap a session row to review it ---------- */
 .session-row.has-details{ cursor:pointer; }
 .session-row.has-details:hover{ border-color:var(--primary); }
-.session-row.has-details::after{
-  content:""; position:absolute; right:17px; top:50%; width:7px; height:7px;
-  border-top:2.5px solid var(--ink-dim); border-right:2.5px solid var(--ink-dim);
-  transform:translateY(-50%) rotate(45deg); pointer-events:none;
+/* grey strip on the right edge of a reviewable row, with a white arrow on it */
+.session-row.has-details::before{
+  content:""; position:absolute; top:0; right:0; bottom:0; width:var(--strip-w);
+  background:color-mix(in srgb, var(--ink-faint) 60%, var(--ink-dim)); border-radius:0 11px 11px 0;
 }
-.session-row.has-details:hover::after{ border-color:var(--primary); }
-/* phones: rows are two lines, so the arrow sits in the top-right corner (empty on line 1) instead of squeezing the columns */
+.session-row.has-details::after{
+  content:""; position:absolute; top:50%; right:calc((var(--strip-w) - 6px) / 2); width:6px; height:12px; transform:translateY(-50%);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 12'%3E%3Cpath d='M1.2 1L4.8 6L1.2 11' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.session-row.has-details:hover::before{ background:var(--primary); }
+/* phones: slightly thinner strip; the content shifts left by the same amount on every row */
 @media (max-width:860px){
-  #view-history .session-row.has-details::after{ top:23px; right:15px; }
+  #view-history .session-row{ --strip-w:15px; padding-right:calc(var(--strip-w) + 10px); }
 }
 @media (max-width:640px){
-  #view-history-skill .session-row.has-details::after, #view-history-full .session-row.has-details::after{ top:23px; right:15px; }
+  #view-history-skill .session-row, #view-history-full .session-row{ --strip-w:14px; padding-right:calc(var(--strip-w) + 6px); }
 }
 
 .rv-modal{
@@ -1768,7 +1776,8 @@
 }
 .rv-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex:none; padding:18px 20px 14px; border-bottom:1px solid var(--line); }
 .rv-title{ font-family:'Sora',sans-serif; font-weight:800; font-size:18px; color:var(--ink); }
-.rv-sub{ font-size:12.5px; color:var(--ink-dim); margin-top:4px; line-height:1.5; }
+.rv-line1{ display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 12px; }
+.rv-sub{ font-size:12.5px; color:var(--ink-dim); line-height:1.5; }
 .rv-body{ overflow-y:auto; min-height:0; padding:4px 20px 20px; }
 .rv-section-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:var(--ink); margin:16px 0 8px; }
 .rv-row{
@@ -1787,10 +1796,3 @@
 .rv-stats{ display:grid; grid-template-columns:4.4em 6.4em 5.4em; column-gap:10px; margin-top:9px; font-size:13px; font-variant-numeric:tabular-nums; }
 .rv-st{ white-space:nowrap; }
 .rv-st.rv-avg, .rv-st.rv-acc{ font-weight:700; color:var(--primary); }
-.rv-all{ margin-top:18px; }
-.rv-all > summary{ font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:var(--ink); cursor:pointer; padding:2px 0; }
-.rv-all-note{ font-size:12px; color:var(--ink-dim); margin:8px 0 10px; line-height:1.5; }
-.rv-all-note b{ color:var(--ink); }
-.rv-n{ display:inline-block; min-width:1.9em; color:var(--ink-dim); font-weight:600; font-size:12px; }
-.rv-skip{ color:var(--ink-dim); font-style:italic; }
-.rv-row.rv-bad{ background:var(--bad-soft); border-color:transparent; }
