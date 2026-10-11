@@ -226,7 +226,9 @@ function reviewRowHtml(r, kind, isMixed){
   }
   return '<div class="rv-row"><div class="rv-q">' + escapeHtml(r.q) + tag + '</div><div class="rv-nums">' + nums + '</div></div>';
 }
+let reviewCurrent = null;   // the round shown in the review popup (the share icon shares this one)
 function openReview(s){
+  reviewCurrent = s;
   const isMixed = s.skill === 'mixed';
   const lv = sessionLevelInfo(s);
   const L = reviewLists(s.details);
@@ -251,8 +253,9 @@ function openReview(s){
   rvBodyEl.scrollTop = 0;
   reviewOpenedAt = Date.now();
   reviewModal.classList.add('show');
+  if(isReviewable(s) && typeof window.prepareSessionShare === 'function') window.prepareSessionShare(s);   // build the share image in the background (js/share.js)
 }
-function closeReview(){ closeLevelPop(); rvLevelPopEl.classList.remove('show'); reviewModal.classList.remove('show'); }
+function closeReview(){ reviewCurrent = null; closeLevelPop(); rvLevelPopEl.classList.remove('show'); reviewModal.classList.remove('show'); }
 function reviewIsOpen(){ return reviewModal.classList.contains('show'); }
 
 // One delegated listener per session list (the lists re-render, so nothing is bound per row).
@@ -311,12 +314,16 @@ function wireRowReview(list){
   });
 }
 document.getElementById('btnReviewClose').addEventListener('click', closeReview);
+// share icon: builds the same share image as the Results screen, from this saved round (see js/share.js)
+document.getElementById('btnReviewShare').addEventListener('click', function(){
+  if(reviewCurrent && typeof shareSession === 'function') shareSession(reviewCurrent, this);
+});
 // (a tap that opened the popup can send a late click to the backdrop; ignore clicks in the first moments)
 reviewModal.addEventListener('click', (e) => { if(e.target === reviewModal && Date.now() - reviewOpenedAt > 400) closeReview(); });
 wireLevelPopovers(rvHeadEl);
 // Esc closes the review first (and stops there, so it can't also act as "go back a screen")
 window.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape' && reviewIsOpen()){
+  if(e.key === 'Escape' && reviewIsOpen() && !document.getElementById('shareModal').classList.contains('show')){   // if the share popup is open on top, it handles its own Esc
     closeReview();
     e.preventDefault();
     e.stopImmediatePropagation();

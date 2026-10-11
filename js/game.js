@@ -476,6 +476,7 @@ function finishRound(){
   }
 
   showView('results');
+  if(typeof window.prepareResultsShare === 'function') window.prepareResultsShare();   // build the share image in the background (js/share.js)
 }
 
 function renderResultsBreakdown(){
