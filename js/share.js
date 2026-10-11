@@ -137,7 +137,8 @@
     } else { wrong = d.wrong || []; slow = d.slow || []; }
 
     const num   = v => (typeof v === 'number' && isFinite(v)) ? v.toFixed(1) + 's' : '—';   // best time may be missing -> dash
-    const title = rec.accuracy === 100 ? 'Flawless round' : (rec.accuracy >= 80 ? 'Solid round' : 'Round complete');   // same rule as game.js
+    const who   = (typeof getDisplayName === 'function') ? getDisplayName() : '';   // current name ('' if not set); rounds don't save a name
+    const title = (rec.accuracy === 100 ? 'Flawless round' : (rec.accuracy >= 80 ? 'Solid round' : 'Round complete')) + (who ? ', ' + esc(who) : '');   // same rule as game.js
 
     let html =
       '<div class="title">' + title + '</div>' +
@@ -370,15 +371,28 @@
   }
 
   // Build the image quietly in the background so it's already waiting when Share is tapped.
-  // Waits a moment (so the screen slide / popup animation stays smooth), then runs when the browser is idle.
-  function prebuild(src){
+  // It starts right after the next screen paint (so the popup / screen shows first), plus an optional extra delay.
+  // If nobody taps Share the image just sits in the cache until newer ones push it out (CACHE_MAX).
+  function prebuild(src, delay){
     const run = () => { getAppName().then(n => getImage(n, src)).catch(() => {}); };
-    setTimeout(() => {
-      if('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1500 }); else run();
-    }, 500);
+    requestAnimationFrame(() => setTimeout(run, delay));
   }
-  window.prepareResultsShare = function(){ resultsStamp = Date.now(); prebuild(sourceFromResults()); };   // called by game.js when Results opens
-  window.prepareSessionShare = function(rec){ prebuild(sourceFromSession(rec)); };                       // called by history.js when the review popup opens
+  // Results: wait 500ms so the screen slide-in (300ms) isn't interrupted. History: start straight away.
+  window.prepareResultsShare = function(){ resultsStamp = Date.now(); prebuild(sourceFromResults(), 500); };   // called by game.js when Results opens
+  window.prepareSessionShare = function(rec){ prebuild(sourceFromSession(rec), 0); };                         // called by history.js when the review popup opens
+
+  // TEMPORARY: shows a small timing note at the top of the screen after each Share tap (set to false / delete when done testing)
+  const DEBUG_TIMING = false;
+  function debugNote(text){
+    let d = document.getElementById('shareDebugNote');
+    if(!d){
+      d = document.createElement('div'); d.id = 'shareDebugNote';
+      d.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;z-index:9999;background:#000;color:#0f0;font:12px/1.4 monospace;padding:8px 10px;border-radius:8px;pointer-events:none;';
+      document.body.appendChild(d);
+    }
+    d.textContent = text; d.style.display = 'block';
+    clearTimeout(d._t); d._t = setTimeout(() => { d.style.display = 'none'; }, 8000);
+  }
 
   // ---------- main ----------
   // btn: the button that was tapped. src: where the card content comes from (omit = live Results screen).
@@ -388,16 +402,25 @@
     const textBtn  = !btn.querySelector('svg');
     const original = textBtn ? btn.textContent : '';
     btn.disabled = true;
+    const t0 = performance.now();
+    let wasCached = true;
 
     try{
       const appName = await getAppName();
       if(!cache.has(cacheKey(appName, src))){
+        wasCached = false;
         // not ready yet: show "Preparing" and let the browser paint it BEFORE the heavy work starts
         if(textBtn) btn.textContent = 'Preparing'; else btn.classList.add('is-busy');
         await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
       }
       const img = await getImage(appName, src);
+      const t1 = performance.now();
       openPreview(img);
+      if(DEBUG_TIMING) requestAnimationFrame(() => requestAnimationFrame(() => {
+        const t2 = performance.now();
+        debugNote((textBtn ? 'RESULTS' : 'HISTORY') + ' | image ' + (wasCached ? 'was ready (cache hit)' : 'NOT ready (built on tap)') +
+                  ' | tap->image ' + Math.round(t1 - t0) + 'ms | image->popup painted ' + Math.round(t2 - t1) + 'ms');
+      }));
       if(textBtn) btn.textContent = original;
     }catch(err){
       console.error('Share failed:', err);
