@@ -96,6 +96,7 @@ function closeNameEditor(){ nameOverlay.classList.remove('show'); nameInput.blur
 function commitName(){
   setDisplayName(nameInput.value);
   renderGreeting();
+  if(window.refreshEndMessage) window.refreshEndMessage();   // Results message: "set a name" button -> the name (js/endmessages.js)
   closeNameEditor();
 }
 greetName.addEventListener('click', openNameEditor);

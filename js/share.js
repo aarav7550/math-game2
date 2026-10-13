@@ -101,9 +101,11 @@
 
   function extractCard(box){
     const noteEl = box.querySelector('.config-note');
+    const msgEl  = box.querySelector('.end-msg');   // end-of-round message; data-share-text is the plain version (no "set a name" button)
     const kinds  = ['acc', 'avg', 'best'];   // stat boxes are always accuracy, avg time, best time (used if the s-* classes are missing)
     return {
       title: textIn(box, '.title'),
+      message: msgEl ? squash(msgEl.hasAttribute('data-share-text') ? msgEl.getAttribute('data-share-text') : msgEl.textContent) : '',
       note:  noteEl ? runsOf(noteEl, false, [[]]) : [],
       stats: Array.from(box.querySelectorAll('.stat-box')).map((b, i) => ({
         num: textIn(b, '.num'), lbl: textIn(b, '.lbl'),
@@ -163,8 +165,11 @@
     const who   = (typeof getDisplayName === 'function') ? getDisplayName() : '';   // current name ('' if not set); rounds don't save a name
     const title = (rec.accuracy === 100 ? 'Flawless round' : (rec.accuracy >= 80 ? 'Solid round' : 'Round complete')) + (who ? ', ' + esc(who) : '');   // same rule as game.js
 
+    const endMsg = (typeof window.pickEndMessage === 'function') ? window.pickEndMessage(rec.accuracy, who, rec.date) : '';   // same message the Results screen showed (picked from the round's date)
+
     let html =
       '<div class="title">' + title + '</div>' +
+      '<div class="end-msg" data-share-text="' + esc(endMsg) + '"></div>' +
       '<div class="config-note">' + parts.join('<br>') + '</div>' +
       '<div class="stats-grid">' +
         '<div class="stat-box s-acc"><div class="num">' + esc(rec.accuracy) + '%</div><div class="lbl">accuracy</div></div>' +

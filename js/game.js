@@ -468,6 +468,8 @@ function finishRound(){
     details: buildSessionDetails(state.records)   // wrong + slowest questions, shown when you tap the session in History
   };
 
+  if(typeof window.showEndMessage === 'function') window.showEndMessage(accuracy, sessionRecord.date);   // message under the title (js/endmessages.js); the date makes History show the same one
+
   if(state.practiceMode){
     practiceSessions.push(sessionRecord);
     savePracticeSessions(practiceSessions);

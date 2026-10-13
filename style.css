@@ -708,6 +708,17 @@
     background:#FFFFFF; border:1px solid var(--r-accent-tint-border); border-radius:16px; padding:22px;
   }
   #view-results .title{ font-family:'Sora',sans-serif; font-size:19px; font-weight:700; margin-bottom:8px; color:var(--r-text); }
+  #view-results .end-msg{ font-size:14px; font-weight:500; line-height:1.5; color:var(--r-dim); margin-bottom:12px; }
+  #view-results .end-msg:empty{ display:none; }
+  /* "set a name" button inside the message (same look as Home's). Kept out of the share image: share.js reads data-share-text instead. */
+  #view-results .res-name-set{
+    display:inline-flex; align-items:center; gap:6px; vertical-align:baseline;
+    background:none; border:1px dashed #B9CDD6; border-radius:8px; padding:1px 8px; margin:0 1px;
+    font-family:inherit; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--r-dim);
+    cursor:pointer; -webkit-tap-highlight-color:transparent;
+  }
+  #view-results .res-name-set svg{ width:12px; height:12px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  @media (hover:hover){ #view-results .res-name-set:hover{ color:var(--r-text); border-color:var(--r-dim); } }
   #view-results .config-note{
     font-size:12.5px; color:var(--r-dim); line-height:1.6;
     background:var(--r-accent-tint); border:1px solid var(--r-accent-tint-border);
