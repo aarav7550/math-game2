@@ -436,7 +436,7 @@
 
   // TEMPORARY: shows a small timing note at the top of the screen after each Share tap (set to false / delete when done testing)
   const DEBUG_TIMING = false;
-  const SHOW_ERRORS  = true;   // TEMPORARY: shows the real reason on screen when Share fails (set to false when it works)
+  const SHOW_ERRORS  = false;  // true = black on-screen note: how/how fast the image was drawn (worker or main thread) + the real reason if Share fails
   function debugNote(text, ms){
     let d = document.getElementById('shareDebugNote');
     if(!d){
