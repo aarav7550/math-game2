@@ -11,7 +11,7 @@
   // DEBUG: set to true to see a small black note at the bottom of the screen
   // every time confetti fires. It says "worker" (the new way) or
   // "main thread, because ..." (the older way, with the reason). Keep it false.
-  var SHOW_ERRORS = true;
+  var SHOW_ERRORS = false;
 
   var worker = null;
   var workerBroken = false;
