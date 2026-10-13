@@ -6,7 +6,7 @@
    game.js only calls window.fireConfetti(), nothing else. */
 (function () {
   var WORKER_URL = 'js/confetti-worker.js';
-  var SAFETY_MS = 12000;          // remove the canvas after this long no matter what
+  var SAFETY_MS = 15000;          // remove the canvas after this long no matter what
 
   // DEBUG: set to true to see a small black note at the bottom of the screen
   // every time confetti fires. It says "worker" (the new way) or

@@ -10,7 +10,7 @@
 
   var COLORS = ['#e84b5e', '#f9db05', '#009bff', '#48ff24'];
   var GRAVITY = 3;
-  var MAX_TICKS = 600;        // safety limit, so the canvas always gets removed
+  var MAX_TICKS = 750;        // safety limit, so the canvas always gets removed
 
   // Each piece vanishes when it falls below its own height on the screen
   // (0 = top, 1 = bottom). Different heights make them disappear gradually.
@@ -18,8 +18,8 @@
   var VANISH_MAX = 0.93;
   var FADE_PX = 95;           // how far a piece fades out after reaching its height
 
-  var DESKTOP_DENSITY = 2;    // 2 = twice as many pieces
-  var PHONE_DENSITY = 2;      // 1.5 = half again as many pieces
+  var DESKTOP_DENSITY = 2.5;    // 2 = twice as many pieces
+  var PHONE_DENSITY = 2.5;      // 1.5 = half again as many pieces
   var DESKTOP_SPEED = 1.6;    // 1.6 = travels further (desktop only)
 
   var raf = (typeof self.requestAnimationFrame === 'function')
