@@ -24,6 +24,7 @@ const ASSETS = [
   './js/info.js',
   './js/nav.js',
   './js/keys.js',
+  './js/share-card.js',
   './js/html2canvas.min.js',
   './js/share.js',
   './js/appname.js',

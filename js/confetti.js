@@ -26,7 +26,7 @@
     canvas.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999';
     document.body.appendChild(canvas);
 
-    var dpr = window.devicePixelRatio || 1;
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     var ctx = canvas.getContext('2d');
