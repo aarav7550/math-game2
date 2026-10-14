@@ -1,84 +1,89 @@
 /* =====================================================================
-   endmessages.js - the short message shown under the title when a round
-   finishes (Results screen, and the shared image).
+   endmessages.js - the title and the short line under it that are shown
+   when a round finishes (Results screen, and the shared image).
 
    HOW TO EDIT (no coding needed):
    - Each block below is one accuracy range. "min" = the lowest accuracy (%)
      that range applies to. The first block that fits wins, so keep the
      blocks ordered from highest min to lowest, and keep the last one at 0.
-   - To add a message: add a new line inside that block's [ ... ] list.
-     Wrap it in quotes and end the line with a comma.
-   - To remove a message: delete its line.
-   - Write {name} where the player's name should go. On the Results screen,
-     if no name is set, a tappable "set a name" button shows there instead
-     (same as Home). In the shared image the name is simply left out.
-   - Keep at least ONE message in every block, or that range shows nothing.
-   - The title above it already says "Flawless round" / "Solid round" /
-     "Round complete", so avoid repeating those words here.
+   - Every entry is a PAIR on one line:
+         ["the title", "the line under it"],
+     The title is the big heading, the line is the small text under it.
+     Write them together so they do not say the same thing.
+   - To add a pair: add a new line inside that block's [ ... ] list. Keep the
+     two quoted texts, the comma between them, the square brackets, and a
+     comma at the end of the line.
+   - To remove a pair: delete its line.
+   - Write {name} where the player's name should go. Use it at most ONCE per
+     pair (in the title OR in the line). On the Results screen, if no name is
+     set, a tappable "set a name" button shows right there (same as Home).
+     In the shared image the name is simply left out. A pair with no {name}
+     never shows the button.
+   - Keep at least ONE pair in every block, or that range shows nothing.
    - Confetti is separate (80%+ in game.js).
    ===================================================================== */
 
 const END_MESSAGE_BANDS = [
   { min: 100, messages: [
-    "Not one miss. Spotless.",
-    "Every answer right, {name}. Hard to do better.",
-    "A clean sweep. That was sharp.",
-    "100% accuracy. Well earned, {name}."
+    ["Flawless round, {name}", "Every answer was right. Hard to do better."],
+    ["Flawless round", "Not one miss. Spotless, {name}."],
+    ["Perfect score", "A clean sweep. That was sharp."],
+    ["Flawless, {name}", "100% accuracy. Well earned."]
   ]},
   { min: 90, messages: [
-    "Almost perfect. Really sharp.",
-    "Excellent work, {name}.",
-    "So close to flawless. Great form.",
-    "Very strong, {name}. Keep this up."
+    ["Solid round, {name}", "Almost perfect. Really sharp."],
+    ["Excellent round", "So close to flawless, {name}. Great form."],
+    ["Very strong, {name}", "Keep this up. You are nearly there."],
+    ["Solid round", "Great form today, {name}."]
   ]},
   { min: 80, messages: [
-    "Strong accuracy, {name}. Keep it up.",
-    "Nicely done. Right on track.",
-    "Good form today. Keep going.",
-    "A reliable score. Well played, {name}."
+    ["Solid round, {name}", "Strong accuracy. Keep it up."],
+    ["Nicely done", "Right on track, {name}."],
+    ["Good round, {name}", "Good form today. Keep going."],
+    ["Solid round", "A reliable score. Well played, {name}."]
   ]},
   { min: 60, messages: [
-    "Decent round. A little more care and you are there.",
-    "Getting somewhere, {name}. Go again?",
-    "Not bad. Check what you missed below.",
-    "Steady progress. One more round will help."
+    ["Round complete, {name}", "Decent round. A little more care and you are there."],
+    ["Getting somewhere", "Go again, {name}?"],
+    ["Not a bad round", "Check what you missed below."],
+    ["Round complete", "Steady progress. One more round will help."]
   ]},
   { min: 40, messages: [
-    "Tough one. Look at the misses and try again.",
-    "Keep at it, {name}. Practice mode can help here.",
-    "Some of these are tricky. Another go will feel easier.",
-    "Every round teaches you something. Try again."
+    ["Tough round, {name}", "Look at the misses and try again."],
+    ["Round complete", "Keep at it, {name}. Practice mode can help here."],
+    ["Tricky one", "Some of these are hard. Another go will feel easier."],
+    ["Round complete, {name}", "Every round teaches you something. Try again."]
   ]},
   { min: 0, messages: [
-    "Rough one, and that is fine. Try an easier level to build up.",
-    "Hard day for numbers, {name}. Come back to it.",
-    "Slow and steady wins. Try practice mode, no timer.",
-    "Everyone starts somewhere. Go again."
+    ["Rough round, {name}", "That is fine. Try an easier level to build up."],
+    ["Round complete", "Hard day for numbers, {name}. Come back to it."],
+    ["Tough one", "Slow and steady wins. Try practice mode, no timer."],
+    ["Round complete, {name}", "Everyone starts somewhere. Go again."]
   ]}
 ];
 
 /* ---------------------------------------------------------------------
-   Code below picks and shows the message. You do not need to change it.
+   Code below picks and shows the pair. You do not need to change it.
    --------------------------------------------------------------------- */
 (function () {
-  var current = null;   // the message of the round on the Results screen (still has {name} in it)
+  var current = null;   // the pair of the round on the Results screen: { title, line } (still has {name} in it)
 
-  // Picks a message for this accuracy. With a seed (the round's date) the pick is always the same for
-  // that round, so History shows the same message the Results screen did. Without a seed it is random.
-  function pickTemplate(accuracy, seed) {
+  // Picks a pair for this accuracy. With a seed (the round's date) the pick is always the same for
+  // that round, so History shows the same pair the Results screen did. Without a seed it is random.
+  function pickPair(accuracy, seed) {
     var acc = Number(accuracy);
     if (isNaN(acc)) acc = 0;
     var list = null;
     for (var i = 0; i < END_MESSAGE_BANDS.length; i++) {
       if (acc >= END_MESSAGE_BANDS[i].min) { list = END_MESSAGE_BANDS[i].messages; break; }
     }
-    if (!list || !list.length) return '';
+    if (!list || !list.length) return null;
     var s = Number(seed);
     var idx = isNaN(s) ? Math.floor(Math.random() * list.length) : Math.abs(Math.floor(s)) % list.length;
-    return list[idx];
+    return { title: list[idx][0] || '', line: list[idx][1] || '' };
   }
 
-  // Message as plain text. No name set: "{name}" is removed together with the comma/space before it.
+  // Text as plain text. No name set: "{name}" is removed together with the comma/space before it.
   function cleanText(template, name) {
     var n = (name || '').trim();
     if (n) return template.replace(/\{name\}/g, n);
@@ -89,16 +94,14 @@ const END_MESSAGE_BANDS = [
     return (typeof getDisplayName === 'function') ? getDisplayName() : '';
   }
 
-  // Fills #resultsEndMsg. data-share-text holds the plain version, which is what the shared image uses
-  // (so the "set a name" button never ends up in the image).
-  function render() {
-    var el = document.getElementById('resultsEndMsg');
+  // Fills one element (the title or the line). data-share-text holds the plain version, which is what the
+  // shared image uses (so the "set a name" button never ends up in the image).
+  function fill(el, template, name) {
     if (!el) return;
-    var name = currentName().trim();
     el.textContent = '';
-    if (!current) { el.removeAttribute('data-share-text'); return; }
-    el.setAttribute('data-share-text', cleanText(current, name));
-    current.split('{name}').forEach(function (part, i) {
+    if (!template) { el.removeAttribute('data-share-text'); return; }
+    el.setAttribute('data-share-text', cleanText(template, name));
+    template.split('{name}').forEach(function (part, i) {
       if (i > 0) {
         if (name) {
           el.appendChild(document.createTextNode(name));
@@ -115,9 +118,16 @@ const END_MESSAGE_BANDS = [
     });
   }
 
+  function render() {
+    if (!current) return;
+    var name = currentName().trim();
+    fill(document.getElementById('resultsTitle'), current.title, name);
+    fill(document.getElementById('resultsEndMsg'), current.line, name);
+  }
+
   // Called by game.js when a round finishes.
   window.showEndMessage = function (accuracy, seed) {
-    current = pickTemplate(accuracy, seed);
+    current = pickPair(accuracy, seed);
     render();
   };
 
@@ -128,14 +138,19 @@ const END_MESSAGE_BANDS = [
     if (view && view.classList.contains('active') && typeof window.prepareResultsShare === 'function') window.prepareResultsShare();
   };
 
-  // Plain-text message for a saved round (History share image).
+  // Plain-text pair for a saved round (History share image): { title, message }.
   window.pickEndMessage = function (accuracy, name, seed) {
-    return cleanText(pickTemplate(accuracy, seed), name);
+    var p = pickPair(accuracy, seed);
+    if (!p) return { title: '', message: '' };
+    return { title: cleanText(p.title, name), message: cleanText(p.line, name) };
   };
 
-  // The "set a name" button opens the same name popup as Home (one listener on the stable parent).
-  var host = document.getElementById('resultsEndMsg');
-  if (host) host.addEventListener('click', function (e) {
-    if (e.target.closest('.res-name-set') && typeof openNameEditor === 'function') openNameEditor();
+  // The "set a name" button (in the title or in the line) opens the same name popup as Home
+  // (one listener on each stable parent).
+  ['resultsTitle', 'resultsEndMsg'].forEach(function (id) {
+    var host = document.getElementById(id);
+    if (host) host.addEventListener('click', function (e) {
+      if (e.target.closest('.res-name-set') && typeof openNameEditor === 'function') openNameEditor();
+    });
   });
 })();

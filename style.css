@@ -717,6 +717,8 @@
     font-family:inherit; font-size:12.5px; font-weight:600; line-height:1.4; color:var(--r-dim);
     cursor:pointer; -webkit-tap-highlight-color:transparent;
   }
+  /* same button when it sits in the (Sora, bold) title: keep it Inter and small, lifted a little to line up with the big text */
+  #view-results .title .res-name-set{ font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; vertical-align:3px; }
   #view-results .res-name-set svg{ width:12px; height:12px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   @media (hover:hover){ #view-results .res-name-set:hover{ color:var(--r-text); border-color:var(--r-dim); } }
   #view-results .config-note{
